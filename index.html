@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FashionHero — Comfortable, Sustainable Shoes</title>
+  <title>FashionHero — Wygodne, Zrównoważone Obuwie</title>
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -28,6 +28,18 @@
     body { font-family: 'Inter', system-ui, sans-serif; margin: 0; }
     .scrollbar-hide::-webkit-scrollbar { display: none; }
     .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .mobile-only { display: flex; }
+    .desktop-only { display: none; }
+    .desktop-inline { display: none; }
+    @media (min-width: 1024px) {
+      .mobile-only { display: none !important; }
+      .desktop-only { display: flex !important; }
+      .desktop-inline { display: block !important; }
+    }
+    .sm-flex { display: none; }
+    @media (min-width: 640px) {
+      .sm-flex { display: flex !important; }
+    }
   </style>
 </head>
 <body>
@@ -44,81 +56,88 @@ const creamLight = '#f5f4f1';
 // ─── Data ─────────────────────────────────────────────────────────
 const heroSlides = [
   {
-    subtitle: 'NEW COLLECTION',
-    title: 'Move In What\nMatters',
-    ctas: ["SHOP MEN'S", "SHOP WOMEN'S"],
+    subtitle: 'NOWA KOLEKCJA',
+    title: 'Poruszaj się w tym,\nco ważne',
+    ctas: ['KOLEKCJA MĘSKA', 'KOLEKCJA DAMSKA'],
     gradient: 'linear-gradient(135deg, #c4b59a 0%, #8a7d6b 40%, #5c6b4f 100%)',
     image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1600&q=80&fit=crop',
   },
   {
-    subtitle: 'BEST SELLERS',
-    title: 'Comfort You Can\nFeel Every Step',
-    ctas: ['SHOP NOW'],
+    subtitle: 'BESTSELLERY',
+    title: 'Komfort, który czujesz\nz każdym krokiem',
+    ctas: ['KUP TERAZ'],
     gradient: 'linear-gradient(160deg, #2a3a5c 0%, #4a6fa5 50%, #8aabcf 100%)',
     image: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=1600&q=80&fit=crop',
   },
   {
-    subtitle: 'SUSTAINABLE STYLE',
-    title: 'Good For You.\nGood For The Planet.',
-    ctas: ['OUR STORY', 'SHOP ALL'],
+    subtitle: 'ZRÓWNOWAŻONY STYL',
+    title: 'Dobre dla Ciebie.\nDobre dla planety.',
+    ctas: ['NASZA HISTORIA', 'WSZYSTKO'],
     gradient: 'linear-gradient(145deg, #6b5b4a 0%, #a89279 40%, #d4cfc5 100%)',
     image: 'https://images.unsplash.com/photo-1539185441755-769473a23570?w=1600&q=80&fit=crop',
   },
 ];
 
 const categories = [
-  { title: 'New Arrivals', label: 'SHOP NOW', gradient: 'linear-gradient(145deg, #a8c0a0 0%, #6b8a5e 40%, #4a6b3d 100%)', image: 'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=600&q=80&fit=crop' },
-  { title: "Men's", label: 'SHOP MEN', gradient: 'linear-gradient(145deg, #4a5568 0%, #2d3748 50%, #1a202c 100%)', image: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=600&q=80&fit=crop' },
-  { title: "Women's", label: 'SHOP WOMEN', gradient: 'linear-gradient(145deg, #d4a5a5 0%, #c08080 50%, #9a5e5e 100%)', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&q=80&fit=crop' },
-  { title: 'Best Sellers', label: 'SHOP NOW', gradient: 'linear-gradient(145deg, #c4b59a 0%, #a89279 50%, #8a7d6b 100%)', image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&q=80&fit=crop' },
+  { title: 'Nowości', label: 'KUP TERAZ', gradient: 'linear-gradient(145deg, #a8c0a0 0%, #6b8a5e 40%, #4a6b3d 100%)', image: 'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=600&q=80&fit=crop' },
+  { title: 'Dla mężczyzn', label: 'KOLEKCJA MĘSKA', gradient: 'linear-gradient(145deg, #4a5568 0%, #2d3748 50%, #1a202c 100%)', image: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=600&q=80&fit=crop' },
+  { title: 'Dla kobiet', label: 'KOLEKCJA DAMSKA', gradient: 'linear-gradient(145deg, #d4a5a5 0%, #c08080 50%, #9a5e5e 100%)', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&q=80&fit=crop' },
+  { title: 'Bestsellery', label: 'KUP TERAZ', gradient: 'linear-gradient(145deg, #c4b59a 0%, #a89279 50%, #8a7d6b 100%)', image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&q=80&fit=crop' },
 ];
 
 const allProducts = [
-  { id: '1', name: 'Cloud Runner', color: 'Jet Black', hex: '#1a1a1a', price: 479, badge: 'BESTSELLER', colors: ['#1a1a1a', '#f0ede6', '#5c6b4f'], tags: ['new-arrivals', 'best-sellers'], image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80&fit=crop' },
-  { id: '2', name: 'Trail Pacer', color: 'Forest Green', hex: '#3d5a3d', price: 559, badge: 'NEW', colors: ['#3d5a3d', '#333333'], tags: ['new-arrivals'], image: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=600&q=80&fit=crop' },
-  { id: '3', name: 'Dash Sport', color: 'Storm Blue', hex: '#4a6fa5', price: 579, badge: 'NEW', colors: ['#4a6fa5', '#1a1a1a'], tags: ['new-arrivals', 'best-sellers'], image: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=600&q=80&fit=crop' },
-  { id: '4', name: 'Breeze Slip-On', color: 'Sand', hex: '#c4b59a', price: 429, badge: null, colors: ['#c4b59a', '#8aabcf'], tags: ['new-arrivals'], image: 'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=600&q=80&fit=crop' },
-  { id: '5', name: 'Urban Walker', color: 'Chalk White', hex: '#f0ede6', price: 499, badge: 'BESTSELLER', colors: ['#f0ede6', '#212121'], tags: ['best-sellers'], image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&q=80&fit=crop' },
-  { id: '6', name: 'Wool Runner', color: 'Blizzard', hex: '#e8e4dc', price: 519, badge: null, colors: ['#e8e4dc', '#5c6b4f', '#4a6fa5'], tags: ['best-sellers'], image: 'https://images.unsplash.com/photo-1539185441755-769473a23570?w=600&q=80&fit=crop' },
+  { id: '1', name: 'Cloud Runner', color: 'Głęboka czerń', hex: '#1a1a1a', price: 479, badge: 'BESTSELLER', colors: ['#1a1a1a', '#f0ede6', '#5c6b4f'], tags: ['new-arrivals', 'best-sellers'], image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80&fit=crop' },
+  { id: '2', name: 'Trail Pacer', color: 'Leśna zieleń', hex: '#3d5a3d', price: 559, badge: 'NOWOŚĆ', colors: ['#3d5a3d', '#333333'], tags: ['new-arrivals'], image: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=600&q=80&fit=crop' },
+  { id: '3', name: 'Dash Sport', color: 'Burzowy błękit', hex: '#4a6fa5', price: 579, badge: 'NOWOŚĆ', colors: ['#4a6fa5', '#1a1a1a'], tags: ['new-arrivals', 'best-sellers'], image: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=600&q=80&fit=crop' },
+  { id: '4', name: 'Breeze Slip-On', color: 'Piasek', hex: '#c4b59a', price: 429, badge: null, colors: ['#c4b59a', '#8aabcf'], tags: ['new-arrivals'], image: 'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=600&q=80&fit=crop' },
+  { id: '5', name: 'Urban Walker', color: 'Kredowa biel', hex: '#f0ede6', price: 499, badge: 'BESTSELLER', colors: ['#f0ede6', '#212121'], tags: ['best-sellers'], image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&q=80&fit=crop' },
+  { id: '6', name: 'Wool Runner', color: 'Śnieżyca', hex: '#e8e4dc', price: 519, badge: null, colors: ['#e8e4dc', '#5c6b4f', '#4a6fa5'], tags: ['best-sellers'], image: 'https://images.unsplash.com/photo-1539185441755-769473a23570?w=600&q=80&fit=crop' },
 ];
 
 const spotlights = [
-  { label: 'NATURALLY EASY', name: 'Cloud Runner', tagline: 'Our lightest shoe ever. Knit from recycled materials for all-day ease.', hex: '#1a1a1a', gradient: 'linear-gradient(160deg, #8a7d6b 0%, #c4b59a 40%, #e8dfd0 100%)', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=900&q=80&fit=crop' },
-  { label: 'LIGHT ON YOUR FEET', name: 'Breeze Slip-On', tagline: 'Slip in and go. Eucalyptus fiber keeps things cool, naturally.', hex: '#c4b59a', gradient: 'linear-gradient(160deg, #5c6b4f 0%, #8a9a7a 40%, #c5cfbb 100%)', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=900&q=80&fit=crop' },
+  { label: 'NATURALNIE LEKKIE', name: 'Cloud Runner', tagline: 'Nasz najlżejszy but. Wykonany z materiałów z recyklingu dla całodniowej wygody.', hex: '#1a1a1a', gradient: 'linear-gradient(160deg, #8a7d6b 0%, #c4b59a 40%, #e8dfd0 100%)', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=900&q=80&fit=crop' },
+  { label: 'LEKKIE NA STOPACH', name: 'Breeze Slip-On', tagline: 'Wsuwaj i idź. Włókno eukaliptusowe zapewnia naturalną świeżość przez cały dzień.', hex: '#c4b59a', gradient: 'linear-gradient(160deg, #5c6b4f 0%, #8a9a7a 40%, #c5cfbb 100%)', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=900&q=80&fit=crop' },
 ];
 
 const promos = [
-  { title: 'Trail Collection', hex: '#3d5a3d', gradient: 'linear-gradient(170deg, #3d5a3d 0%, #5c7a5c 40%, #8a9a7a 100%)', image: 'https://images.unsplash.com/photo-1571736772567-e91eda2cf8b5?w=700&q=80&fit=crop' },
-  { title: 'Everyday Essentials', hex: '#a89279', gradient: 'linear-gradient(170deg, #6b5b4a 0%, #a89279 40%, #c4b59a 100%)', image: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=700&q=80&fit=crop' },
-  { title: 'Sale', hex: '#c06060', gradient: 'linear-gradient(170deg, #9e4040 0%, #c06060 40%, #d48a8a 100%)', image: 'https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=700&q=80&fit=crop' },
+  { title: 'Kolekcja Terenowa', hex: '#3d5a3d', gradient: 'linear-gradient(170deg, #3d5a3d 0%, #5c7a5c 40%, #8a9a7a 100%)', image: 'https://images.unsplash.com/photo-1571736772567-e91eda2cf8b5?w=700&q=80&fit=crop' },
+  { title: 'Codzienne Basics', hex: '#a89279', gradient: 'linear-gradient(170deg, #6b5b4a 0%, #a89279 40%, #c4b59a 100%)', image: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=700&q=80&fit=crop' },
+  { title: 'Wyprzedaż', hex: '#c06060', gradient: 'linear-gradient(170deg, #9e4040 0%, #c06060 40%, #d48a8a 100%)', image: 'https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=700&q=80&fit=crop' },
 ];
 
 const valueProps = [
-  { label: 'DISCOVERY', title: 'Thousands Of Sellers, One Search', desc: 'From top brands to independent designers — find exactly what you\'re looking for across thousands of curated sellers.' },
-  { label: 'TRUST', title: 'Verified Sellers, Real Reviews', desc: 'Every seller on FashionHero is vetted. Real customer reviews and our Pro seller program help you shop with confidence.' },
-  { label: 'VARIETY', title: 'From Streetwear To Sustainable', desc: 'Premium brands, vintage finds, handmade originals, everyday basics. Whatever your style, it\'s here.' },
+  { label: 'ODKRYCIE', title: 'Tysiące sprzedawców, jedno wyszukiwanie', desc: 'Od topowych marek po niezależnych projektantów — znajdź dokładnie to, czego szukasz, wśród tysięcy sprawdzonych sprzedawców.' },
+  { label: 'ZAUFANIE', title: 'Zweryfikowani sprzedawcy, prawdziwe opinie', desc: 'Każdy sprzedawca w FashionHero jest weryfikowany. Prawdziwe opinie klientów i nasz program Pro pomogą Ci robić zakupy z pewnością.' },
+  { label: 'RÓŻNORODNOŚĆ', title: 'Od streetwearu do zrównoważonej mody', desc: 'Marki premium, vintage, ręcznie robione oryginały, codzienne basics. Cokolwiek jest Twoim stylem — znajdziesz to tutaj.' },
 ];
 
 const footerSections = [
-  { title: 'HELP', links: ['FAQ/Contact Us', 'Returns/Exchanges', 'Shipping Info', 'Order Status'] },
-  { title: 'SHOP', links: ["Men's Shoes", "Women's Shoes", 'New Arrivals', 'Best Sellers', 'Sale'] },
-  { title: 'COMPANY', links: ['Our Story', 'Our Materials', 'Sustainability', 'Careers', 'Press'] },
+  { title: 'POMOC', links: ['FAQ / Kontakt', 'Zwroty i wymiana', 'Informacje o dostawie', 'Status zamówienia'] },
+  { title: 'SKLEP', links: ['Buty męskie', 'Buty damskie', 'Nowości', 'Bestsellery', 'Wyprzedaż'] },
+  { title: 'FIRMA', links: ['Nasza historia', 'Nasze materiały', 'Zrównoważony rozwój', 'Kariera', 'Prasa'] },
 ];
 
 const megaMenuData = {
-  MEN: [
-    { heading: 'SHOES', links: ['Runners', 'Walkers', 'Trainers', 'Slip-Ons', "All Men's Shoes"] },
-    { heading: 'APPAREL', links: ['Tees', 'Hoodies', 'Joggers', 'Jackets', "All Men's Apparel"] },
-    { heading: 'SOCKS', links: ['Ankle Socks', 'Crew Socks', 'No-Show', 'Performance'] },
-    { heading: 'ACCESSORIES', links: ['Bags', 'Beanies', 'Caps', 'Insoles'] },
+  MĘŻCZYŹNI: [
+    { heading: 'BUTY', links: ['Biegowe', 'Do chodzenia', 'Treningowe', 'Wsuwane', 'Wszystkie buty męskie'] },
+    { heading: 'ODZIEŻ', links: ['Koszulki', 'Bluzy', 'Spodnie', 'Kurtki', 'Cała odzież męska'] },
+    { heading: 'SKARPETKI', links: ['Stopki', 'Skarpetki długie', 'Niewidoczne', 'Sportowe'] },
+    { heading: 'AKCESORIA', links: ['Torby', 'Czapki', 'Czapki z daszkiem', 'Wkładki'] },
   ],
-  WOMEN: [
-    { heading: 'SHOES', links: ['Runners', 'Walkers', 'Flats', 'Slip-Ons', "All Women's Shoes"] },
-    { heading: 'APPAREL', links: ['Tees', 'Hoodies', 'Joggers', 'Cardigans', "All Women's Apparel"] },
-    { heading: 'SOCKS', links: ['Ankle Socks', 'Crew Socks', 'No-Show', 'Performance'] },
-    { heading: 'ACCESSORIES', links: ['Bags', 'Beanies', 'Caps', 'Insoles'] },
+  KOBIETY: [
+    { heading: 'BUTY', links: ['Biegowe', 'Do chodzenia', 'Baleriny', 'Wsuwane', 'Wszystkie buty damskie'] },
+    { heading: 'ODZIEŻ', links: ['Koszulki', 'Bluzy', 'Spodnie', 'Swetry', 'Cała odzież damska'] },
+    { heading: 'SKARPETKI', links: ['Stopki', 'Skarpetki długie', 'Niewidoczne', 'Sportowe'] },
+    { heading: 'AKCESORIA', links: ['Torby', 'Czapki', 'Czapki z daszkiem', 'Wkładki'] },
   ],
 };
+
+const promotedProducts = [
+  { id: 'p1', name: 'Cloud Runner', seller: 'NovaSport', color: 'Głęboka czerń', hex: '#1a1a1a', price: 479, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80&fit=crop', rating: 4.9, reviews: 312 },
+  { id: 'p2', name: 'Trail Pacer', seller: 'GreenStep', color: 'Leśna zieleń', hex: '#3d5a3d', price: 559, image: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=600&q=80&fit=crop', rating: 4.7, reviews: 188 },
+  { id: 'p3', name: 'Dash Sport', seller: 'UrbanFeet', color: 'Burzowy błękit', hex: '#4a6fa5', price: 579, image: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=600&q=80&fit=crop', rating: 4.8, reviews: 245 },
+  { id: 'p4', name: 'Urban Walker', seller: 'NovaSport', color: 'Kredowa biel', hex: '#f0ede6', price: 499, image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&q=80&fit=crop', rating: 4.6, reviews: 97 },
+];
 
 // ─── Helpers ──────────────────────────────────────────────────────
 function ShoeIllustration({ hex, opacity = 0.6 }) {
@@ -187,14 +206,14 @@ function AnnouncementBar() {
   return (
     <div style={{ backgroundColor: charcoal, color: '#fff', height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.05em', margin: 0 }}>
-        Free Shipping on Orders over 99 zł &nbsp;·&nbsp; Easy Returns
+        Darmowa dostawa przy zamówieniach powyżej 99 zł &nbsp;·&nbsp; Łatwe zwroty
       </p>
     </div>
   );
 }
 
 // ─── Header ───────────────────────────────────────────────────────
-function Header() {
+function Header({ activePage = 'home' }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);
   const [mobileExpanded, setMobileExpanded] = useState(null);
@@ -210,32 +229,37 @@ function Header() {
     <header style={{ backgroundColor: '#fff', position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
       <nav style={{ display: 'flex', height: 56, alignItems: 'center', padding: '0 24px', position: 'relative' }}>
         {/* Mobile toggle */}
-        <button className="lg:hidden" onClick={() => setMobileOpen(o => !o)} style={{ ...iconBtn, marginRight: 12 }}>
+        <button className="mobile-only" onClick={() => setMobileOpen(o => !o)} style={{ ...iconBtn, marginRight: 12 }}>
           {mobileOpen ? <CloseIcon /> : <MenuIcon />}
         </button>
 
         {/* Logo */}
-        <a href="#" style={{ marginRight: 32, textDecoration: 'none' }}>
+        <a href="index.html" style={{ marginRight: 32, textDecoration: 'none' }}>
           <span style={{ fontSize: 20, fontWeight: 600, fontStyle: 'italic', letterSpacing: '-0.03em', color: charcoal }}>FashionHero</span>
         </a>
 
         {/* Desktop nav */}
-        <div className="hidden lg:flex" style={{ alignItems: 'center', gap: 24, flex: 1 }}>
-          {['MEN', 'WOMEN', 'SALE', 'NEW'].map(item => (
-            <div key={item}
+        <div className="desktop-only" style={{ alignItems: 'center', gap: 24, flex: 1 }}>
+          {['MĘŻCZYŹNI', 'KOBIETY', 'WYPRZEDAŻ', 'NOWOŚCI'].map(item => (
+            <div key={item} style={{ display: 'flex', alignItems: 'center' }}
               onMouseEnter={() => megaMenuData[item] ? enter(item) : setActiveMenu(null)}
               onMouseLeave={leave}
             >
-              <a href="#" style={{ fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: charcoal, textDecoration: 'none' }}>{item}</a>
+              <a href="#" style={{ fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: charcoal, textDecoration: 'none', borderBottom: '2px solid transparent', paddingBottom: 2 }}>{item}</a>
             </div>
           ))}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <a href="sellers.html" style={{ fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#5c6b4f', textDecoration: 'none', borderBottom: '2px solid transparent', paddingBottom: 2 }}>
+              Dla Sprzedawców
+            </a>
+          </div>
         </div>
 
         {/* Right */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }}>
-          <a href="#" className="hidden lg:block" style={{ fontSize: 12, color: warmGray, textDecoration: 'none', padding: '0 8px' }}>About</a>
+          <a href="#" className="desktop-inline" style={{ fontSize: 12, color: warmGray, textDecoration: 'none', padding: '0 8px' }}>O nas</a>
           <button style={iconBtn}><SearchIcon /></button>
-          <button style={iconBtn} className="hidden sm:flex"><HeartIcon /></button>
+          <button style={iconBtn} className="sm-flex"><HeartIcon /></button>
           <button style={iconBtn}><CartIcon /></button>
         </div>
       </nav>
@@ -264,9 +288,9 @@ function Header() {
       )}
 
       {/* Mobile drawer */}
-      <div className="lg:hidden" style={{ overflow: 'hidden', maxHeight: mobileOpen ? 500 : 0, transition: 'max-height 0.3s ease', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+      <div className="mobile-only" style={{ overflow: 'hidden', maxHeight: mobileOpen ? 560 : 0, transition: 'max-height 0.3s ease', borderTop: '1px solid rgba(0,0,0,0.05)', flexDirection: 'column' }}>
         <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {['MEN', 'WOMEN', 'SALE', 'NEW'].map(item => {
+          {['MĘŻCZYŹNI', 'KOBIETY', 'WYPRZEDAŻ', 'NOWOŚCI'].map(item => {
             const cols = megaMenuData[item];
             const isOpen = mobileExpanded === item;
             if (!cols) return <a key={item} href="#" style={{ fontSize: 13, padding: '8px 0', color: charcoal, textDecoration: 'none' }}>{item}</a>;
@@ -289,7 +313,10 @@ function Header() {
               </div>
             );
           })}
-          <a href="#" style={{ fontSize: 13, padding: '8px 0', color: charcoal, textDecoration: 'none' }}>About</a>
+          <a href="#" style={{ fontSize: 13, padding: '8px 0', color: charcoal, textDecoration: 'none' }}>O nas</a>
+          <a href="sellers.html" style={{ fontSize: 13, padding: '8px 0', color: '#5c6b4f', fontWeight: 500, textDecoration: 'none' }}>
+            Dla Sprzedawców
+          </a>
         </div>
       </div>
     </header>
@@ -400,9 +427,9 @@ function ProductCarousel() {
 
   return (
     <section style={{ padding: '48px 0' }}>
-      <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 300, textAlign: 'center', color: charcoal, margin: '0 0 8px' }}>Our Favorites</h2>
+      <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 300, textAlign: 'center', color: charcoal, margin: '0 0 8px' }}>Nasze ulubione</h2>
       <div style={{ display: 'flex', justifyContent: 'center', gap: 24, marginBottom: 32 }}>
-        {[['new', 'NEW ARRIVALS'], ['best', 'BEST SELLERS']].map(([val, label]) => (
+        {[['new', 'NOWOŚCI'], ['best', 'BESTSELLERY']].map(([val, label]) => (
           <button key={val} onClick={() => setTab(val)}
             style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', paddingBottom: 4, borderBottom: `2px solid ${tab === val ? charcoal : 'transparent'}`, color: tab === val ? charcoal : warmGray }}>
             {label}
@@ -424,7 +451,7 @@ function ProductCarousel() {
 function FeatureStory() {
   return (
     <section style={{ padding: 'clamp(24px,4vw,40px) clamp(16px,3vw,48px)' }}>
-      <h2 style={{ fontSize: 'clamp(28px,4vw,40px)', fontWeight: 300, textAlign: 'center', color: charcoal, margin: '0 0 40px', lineHeight: 1.2 }}>Your Easy, Breezy MVP</h2>
+      <h2 style={{ fontSize: 'clamp(28px,4vw,40px)', fontWeight: 300, textAlign: 'center', color: charcoal, margin: '0 0 40px', lineHeight: 1.2 }}>Twój lekki i wygodny faworyt</h2>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
         {spotlights.map(item => (
           <div key={item.name} style={{ position: 'relative', overflow: 'hidden', background: item.gradient, minHeight: 520 }}>
@@ -437,7 +464,7 @@ function FeatureStory() {
               <p style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.7)', marginBottom: 8 }}>{item.label}</p>
               <h3 style={{ fontSize: 24, fontWeight: 300, color: '#fff', marginBottom: 8 }}>{item.name}</h3>
               <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', marginBottom: 24, maxWidth: 280, lineHeight: 1.6 }}>{item.tagline}</p>
-              <OutlineBtn>EXPLORE MORE</OutlineBtn>
+              <OutlineBtn>ODKRYJ WIĘCEJ</OutlineBtn>
             </div>
           </div>
         ))}
@@ -461,8 +488,8 @@ function PromoTiles() {
             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0 24px 28px', textAlign: 'center', zIndex: 10 }}>
               <h3 style={{ fontSize: 20, fontWeight: 300, color: '#fff', marginBottom: 16, letterSpacing: '0.03em' }}>{promo.title}</h3>
               <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                <OutlineBtn>SHOP MEN</OutlineBtn>
-                <OutlineBtn>SHOP WOMEN</OutlineBtn>
+                <OutlineBtn>DLA MĘŻCZYZN</OutlineBtn>
+                <OutlineBtn>DLA KOBIET</OutlineBtn>
               </div>
             </div>
           </div>
@@ -496,7 +523,7 @@ function Footer() {
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(40px,5vw,64px) clamp(16px,3vw,32px)' }}>
         {/* Social */}
         <div style={{ marginBottom: 48, paddingBottom: 40, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          <h3 style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.5)', marginBottom: 16 }}>FOLLOW THE FLOCK</h3>
+          <h3 style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.5)', marginBottom: 16 }}>ŚLEDŹ NAS</h3>
           <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
             {['Instagram', 'TikTok', 'Facebook', 'X/Twitter'].map(s => (
               <a key={s} href="#" style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>{s}</a>
@@ -508,15 +535,15 @@ function Footer() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 40 }}>
           {/* Email signup */}
           <div>
-            <h3 style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.5)', marginBottom: 16 }}>JOIN THE FLOCK</h3>
-            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 16, lineHeight: 1.6 }}>Get the latest on new products, exclusive deals, and more.</p>
+            <h3 style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.5)', marginBottom: 16 }}>DOŁĄCZ DO NAS</h3>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 16, lineHeight: 1.6 }}>Bądź na bieżąco z nowościami, ekskluzywną ofertą i nie tylko.</p>
             <form onSubmit={e => e.preventDefault()} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <input type="email" placeholder="Email Address"
+              <input type="email" placeholder="Adres e-mail"
                 style={{ background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.3)', padding: '8px 0', fontSize: 14, color: '#fff', outline: 'none' }}
               />
               <button type="submit"
                 style={{ alignSelf: 'flex-start', padding: '8px 24px', fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: charcoal, backgroundColor: '#fff', border: 'none', borderRadius: 9999, cursor: 'pointer' }}>
-                Sign Up
+                Zapisz się
               </button>
             </form>
           </div>
@@ -537,14 +564,104 @@ function Footer() {
         <div style={{ marginTop: 56, paddingTop: 32, borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
             <span style={{ fontSize: 18, fontWeight: 600, fontStyle: 'italic', letterSpacing: '-0.03em' }}>FashionHero</span>
-            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.2)', padding: '4px 12px', borderRadius: 4 }}>US ($)</span>
-          </div>
+           </div>
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', margin: 0 }}>
-            &copy; {new Date().getFullYear()} FashionHero, Inc. All Rights Reserved.
+            &copy; {new Date().getFullYear()} FashionHero, Inc. Wszelkie prawa zastrzeżone.
           </p>
         </div>
       </div>
     </footer>
+  );
+}
+
+// ─── Promoted Listings Section ────────────────────────────────────
+const gold = '#c9a84c';
+const goldLight = '#f0d080';
+const goldDark = '#9a7a2a';
+
+function StarRating({ value }) {
+  return (
+    <span style={{ color: gold, fontSize: 13, letterSpacing: 2 }}>
+      {'★'.repeat(Math.round(value))}{'☆'.repeat(5 - Math.round(value))}
+    </span>
+  );
+}
+
+function PromotedListingsSection() {
+  return (
+    <section style={{ background: 'linear-gradient(180deg, #1a1710 0%, #2a2518 50%, #1a1710 100%)', padding: 'clamp(40px,5vw,72px) 0', position: 'relative', overflow: 'hidden' }}>
+      {/* subtle golden shimmer background */}
+      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 clamp(16px,3vw,48px)', position: 'relative' }}>
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <div style={{ height: 1, width: 40, background: `linear-gradient(to right, transparent, ${gold})` }} />
+            <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.14em', color: gold }}>
+              ✦ Promowani Sprzedawcy ✦
+            </span>
+            <div style={{ height: 1, width: 40, background: `linear-gradient(to left, transparent, ${gold})` }} />
+          </div>
+          <h2 style={{ fontSize: 'clamp(26px,4vw,44px)', fontWeight: 300, color: '#f5ecd4', margin: '0 0 12px', letterSpacing: '0.04em' }}>
+            Wyróżnieni na FashionHero
+          </h2>
+          <p style={{ fontSize: 14, color: 'rgba(245,236,212,0.55)', margin: 0 }}>
+            Sprawdzeni sprzedawcy z najwyższymi ocenami klientów
+          </p>
+        </div>
+
+        {/* Cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24 }}>
+          {promotedProducts.map(p => (
+            <a key={p.id} href="#" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', background: 'linear-gradient(160deg, #2e2a1c 0%, #231f13 100%)', border: `1px solid rgba(201,168,76,0.25)`, overflow: 'hidden', position: 'relative', transition: 'border-color 0.2s, transform 0.2s', cursor: 'pointer' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.7)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.25)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            >
+              {/* Gold corner accent */}
+              <div style={{ position: 'absolute', top: 0, left: 0, width: 0, height: 0, borderStyle: 'solid', borderWidth: '36px 36px 0 0', borderColor: `${gold} transparent transparent transparent`, zIndex: 20 }} />
+              <span style={{ position: 'absolute', top: 5, left: 3, fontSize: 9, color: '#1a1710', fontWeight: 700, zIndex: 21, letterSpacing: '0.04em', lineHeight: 1 }}>PRO</span>
+
+              {/* Image */}
+              <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden' }}>
+                <img src={p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s' }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(26,23,16,0.6) 0%, transparent 60%)' }} />
+                <div style={{ position: 'absolute', bottom: 12, left: 14, right: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                  <span style={{ fontSize: 16, fontWeight: 600, color: '#f5ecd4', letterSpacing: '0.02em' }}>{p.name}</span>
+                  <span style={{ fontSize: 17, fontWeight: 600, color: goldLight }}>{p.price} zł</span>
+                </div>
+              </div>
+
+              {/* Info */}
+              <div style={{ padding: '16px 16px 20px' }}>
+                <p style={{ fontSize: 10, color: gold, margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>{p.seller}</p>
+                <p style={{ fontSize: 12, color: 'rgba(245,236,212,0.5)', margin: '0 0 10px' }}>{p.color}</p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <StarRating value={p.rating} />
+                    <span style={{ fontSize: 12, color: 'rgba(245,236,212,0.5)' }}>{p.rating} ({p.reviews})</span>
+                  </div>
+                  <span style={{ fontSize: 10, color: gold, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>KUP →</span>
+                </div>
+              </div>
+
+              {/* Bottom gold line */}
+              <div style={{ height: 2, background: `linear-gradient(to right, transparent, ${gold}, transparent)` }} />
+            </a>
+          ))}
+        </div>
+
+        {/* Footer link */}
+        <div style={{ textAlign: 'center', marginTop: 40 }}>
+          <a href="#" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: gold, textDecoration: 'none', padding: '10px 28px', border: `1px solid rgba(201,168,76,0.4)`, background: 'rgba(201,168,76,0.07)' }}>
+            Pokaż więcej →
+          </a>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -553,9 +670,10 @@ function App() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <AnnouncementBar />
-      <Header />
+      <Header activePage="home" />
       <main style={{ flex: 1 }}>
         <HeroCarousel />
+        <PromotedListingsSection />
         <CategoryRow />
         <ProductCarousel />
         <FeatureStory />

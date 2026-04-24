@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dla Sprzedawców — FashionHero</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            charcoal: '#212121',
+            'warm-gray': '#6b6b6b',
+            'cream-light': '#f5f4f1',
+          },
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+    .mobile-only { display: flex; }
+    .desktop-only { display: none; }
+    .desktop-inline { display: none; }
+    @media (min-width: 1024px) {
+      .mobile-only { display: none !important; }
+      .desktop-only { display: flex !important; }
+      .desktop-inline { display: block !important; }
+    }
+    .sm-flex { display: none; }
+    @media (min-width: 640px) {
+      .sm-flex { display: flex !important; }
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState } = React;
+
+const charcoal = '#212121';
+const warmGray = '#6b6b6b';
+
+// ─── Shared components ────────────────────────────────────────────
+function OutlineBtn({ children, light = true, style: extra }) {
+  const [hovered, setHovered] = useState(false);
+  const base = {
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    padding: '8px 22px', fontSize: 11, fontWeight: 500, textTransform: 'uppercase',
+    letterSpacing: '0.06em', borderRadius: 9999, textDecoration: 'none', cursor: 'pointer',
+    border: `1px solid ${light ? '#fff' : charcoal}`,
+    color: hovered ? (light ? charcoal : '#fff') : (light ? '#fff' : charcoal),
+    backgroundColor: hovered ? (light ? '#fff' : charcoal) : 'transparent',
+    transition: 'background 0.2s, color 0.2s',
+    ...extra,
+  };
+  return (
+    <a href="#" style={base} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+      {children}
+    </a>
+  );
+}
+
+const iconStyle = { width: 20, height: 20 };
+function SearchIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={iconStyle}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>;
+}
+function CartIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={iconStyle}><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>;
+}
+function HeartIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={iconStyle}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>;
+}
+function MenuIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" style={iconStyle}><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>;
+}
+function CloseIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" style={iconStyle}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+}
+
+// ─── Announcement Bar ─────────────────────────────────────────────
+function AnnouncementBar() {
+  return (
+    <div style={{ backgroundColor: charcoal, color: '#fff', height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.05em', margin: 0 }}>
+        Darmowa dostawa przy zamówieniach powyżej 99 zł &nbsp;·&nbsp; Łatwe zwroty
+      </p>
+    </div>
+  );
+}
+
+// ─── Header ───────────────────────────────────────────────────────
+function Header() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: charcoal, display: 'flex', alignItems: 'center' };
+
+  return (
+    <header style={{ backgroundColor: '#fff', position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+      <nav style={{ display: 'flex', height: 56, alignItems: 'center', padding: '0 24px', position: 'relative' }}>
+        <button className="mobile-only" onClick={() => setMobileOpen(o => !o)} style={{ ...iconBtn, marginRight: 12 }}>
+          {mobileOpen ? <CloseIcon /> : <MenuIcon />}
+        </button>
+
+        <a href="index.html" style={{ marginRight: 32, textDecoration: 'none' }}>
+          <span style={{ fontSize: 20, fontWeight: 600, fontStyle: 'italic', letterSpacing: '-0.03em', color: charcoal }}>FashionHero</span>
+        </a>
+
+        <div className="desktop-only" style={{ alignItems: 'center', gap: 24, flex: 1 }}>
+          {['MĘŻCZYŹNI', 'KOBIETY', 'WYPRZEDAŻ', 'NOWOŚCI'].map(item => (
+            <div key={item} style={{ display: 'flex', alignItems: 'center' }}>
+              <a href="index.html" style={{ fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: charcoal, textDecoration: 'none', borderBottom: '2px solid transparent', paddingBottom: 2 }}>{item}</a>
+            </div>
+          ))}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <a href="sellers.html" style={{ fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#5c6b4f', textDecoration: 'none', borderBottom: '2px solid #5c6b4f', paddingBottom: 2 }}>
+              Dla Sprzedawców
+            </a>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }}>
+          <a href="#" className="desktop-inline" style={{ fontSize: 12, color: warmGray, textDecoration: 'none', padding: '0 8px' }}>O nas</a>
+          <button style={iconBtn}><SearchIcon /></button>
+          <button style={iconBtn} className="sm-flex"><HeartIcon /></button>
+          <button style={iconBtn}><CartIcon /></button>
+        </div>
+      </nav>
+
+      <div className="mobile-only" style={{ overflow: 'hidden', maxHeight: mobileOpen ? 300 : 0, transition: 'max-height 0.3s ease', borderTop: '1px solid rgba(0,0,0,0.05)', flexDirection: 'column' }}>
+        <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {['MĘŻCZYŹNI', 'KOBIETY', 'WYPRZEDAŻ', 'NOWOŚCI'].map(item => (
+            <a key={item} href="index.html" style={{ fontSize: 13, padding: '8px 0', color: charcoal, textDecoration: 'none' }}>{item}</a>
+          ))}
+          <a href="#" style={{ fontSize: 13, padding: '8px 0', color: charcoal, textDecoration: 'none' }}>O nas</a>
+          <a href="sellers.html" style={{ fontSize: 13, padding: '8px 0', color: '#5c6b4f', fontWeight: 500, textDecoration: 'none' }}>
+            Dla Sprzedawców
+          </a>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+// ─── Footer ───────────────────────────────────────────────────────
+const footerSections = [
+  { title: 'POMOC', links: ['FAQ / Kontakt', 'Zwroty i wymiana', 'Informacje o dostawie', 'Status zamówienia'] },
+  { title: 'SKLEP', links: ['Buty męskie', 'Buty damskie', 'Nowości', 'Bestsellery', 'Wyprzedaż'] },
+  { title: 'FIRMA', links: ['Nasza historia', 'Nasze materiały', 'Zrównoważony rozwój', 'Kariera', 'Prasa'] },
+];
+
+function Footer() {
+  return (
+    <footer style={{ backgroundColor: '#212121', color: '#fff' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(40px,5vw,64px) clamp(16px,3vw,32px)' }}>
+        <div style={{ marginBottom: 48, paddingBottom: 40, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+          <h3 style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.5)', marginBottom: 16 }}>ŚLEDŹ NAS</h3>
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+            {['Instagram', 'TikTok', 'Facebook', 'X/Twitter'].map(s => (
+              <a key={s} href="#" style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>{s}</a>
+            ))}
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 40 }}>
+          <div>
+            <h3 style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.5)', marginBottom: 16 }}>DOŁĄCZ DO NAS</h3>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 16, lineHeight: 1.6 }}>Bądź na bieżąco z nowościami, ekskluzywną ofertą i nie tylko.</p>
+            <form onSubmit={e => e.preventDefault()} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <input type="email" placeholder="Adres e-mail"
+                style={{ background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.3)', padding: '8px 0', fontSize: 14, color: '#fff', outline: 'none' }} />
+              <button type="submit"
+                style={{ alignSelf: 'flex-start', padding: '8px 24px', fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: charcoal, backgroundColor: '#fff', border: 'none', borderRadius: 9999, cursor: 'pointer' }}>
+                Zapisz się
+              </button>
+            </form>
+          </div>
+          {footerSections.map(sec => (
+            <div key={sec.title}>
+              <h3 style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.5)', marginBottom: 16 }}>{sec.title}</h3>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {sec.links.map(link => (
+                  <li key={link}><a href="#" style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>{link}</a></li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 56, paddingTop: 32, borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+            <span style={{ fontSize: 18, fontWeight: 600, fontStyle: 'italic', letterSpacing: '-0.03em' }}>FashionHero</span>
+          </div>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+            &copy; {new Date().getFullYear()} FashionHero, Inc. Wszelkie prawa zastrzeżone.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+// ─── Sellers Page ─────────────────────────────────────────────────
+function SellersPage() {
+  const commissionTiers = [
+    { tier: 'Standard', rate: '22%', desc: 'Dostępny dla każdego nowego sprzedawcy. Pełny dostęp do platformy.', color: '#6b6b6b' },
+    { tier: 'Silver', rate: '18%', desc: 'Return rate poniżej 30%, minimum 50 transakcji miesięcznie.', color: '#7a8fa0' },
+    { tier: 'Gold', rate: '15%', desc: 'Return rate poniżej 20%, ocena klientów ≥ 4.7, 150+ transakcji.', color: '#c4a240' },
+    { tier: 'Pro', rate: '14%', desc: 'Top 5% sprzedawców. Indywidualne warunki, dedykowany opiekun.', color: '#5c6b4f' },
+  ];
+
+  const promotedBenefits = [
+    { title: 'Wyróżnienie na stronie głównej', desc: 'Twoje produkty pokazujemy w sekcji Promoted Listings odwiedzanej przez tysiące klientów dziennie.' },
+    { title: 'Pierwsza pozycja w wyszukiwarce', desc: 'Promoted produkty pojawiają się na górze wyników dla wybranych słów kluczowych.' },
+    { title: 'Badge "Promoted" na karcie produktu', desc: 'Zwiększa klikalność średnio o 34% według naszych danych.' },
+    { title: 'Raportowanie w czasie rzeczywistym', desc: 'Śledzisz wyświetlenia, kliknięcia i konwersję dla każdej kampanii.' },
+  ];
+
+  const faqItems = [
+    { q: 'Jak działa Dynamiczny Silnik Marży?', a: 'Stawka prowizji dostosowuje się automatycznie co miesiąc na podstawie Twoich wskaźników: return rate, oceny klientów i wolumenu sprzedaży. Im lepsze wyniki, tym niższa prowizja.' },
+    { q: 'Ile kosztuje Promoted Listing?', a: 'Płacisz tylko za wyniki — model cost-per-click. Minimalna stawka to 0,40 zł/klik. Ustalasz dzienny budżet i nigdy go nie przekraczamy.' },
+    { q: 'Kiedy mogę zacząć sprzedawać?', a: 'Weryfikacja konta trwa 24–48 godzin. Po akceptacji możesz od razu wystawiać produkty.' },
+    { q: 'Co to jest wskaźnik return rate?', a: 'To procent zamówień zwróconych przez kupujących. Nasz średni wynosi 38% — sprzedawcy poniżej tej granicy automatycznie kwalifikują się do niższej stawki.' },
+    { q: 'Jak awansować na wyższy tier?', a: 'System sprawdza Twoje wskaźniki na początku każdego miesiąca. Jeśli spełniasz kryteria wyższego poziomu przez dwa kolejne miesiące, prowizja spada automatycznie — bez rozmów z handlowcem.' },
+  ];
+
+  const [openFaq, setOpenFaq] = useState(null);
+
+  return (
+    <main style={{ flex: 1 }}>
+      {/* Hero */}
+      <section style={{ minHeight: '55vh', display: 'flex', alignItems: 'center', padding: 'clamp(48px,8vw,96px) clamp(24px,6vw,80px)', position: 'relative', overflow: 'hidden' }}>
+        <img src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1600&q=80&auto=format&fit=crop" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(45,61,45,0.88) 0%, rgba(74,107,61,0.75) 60%, rgba(138,154,122,0.5) 100%)' }} />
+        <div style={{ position: 'relative', zIndex: 10, maxWidth: 600 }}>
+          <p style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.7)', margin: '0 0 16px' }}>Dla Sprzedawców</p>
+          <h1 style={{ fontSize: 'clamp(2rem,5vw,3.2rem)', fontWeight: 300, color: '#fff', margin: '0 0 20px', lineHeight: 1.2 }}>
+            Sprzedawaj mądrzej.<br />Zarabiaj więcej.
+          </h1>
+          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', margin: '0 0 36px', lineHeight: 1.7, maxWidth: 460 }}>
+            Dołącz do tysięcy sprzedawców, którzy korzystają z dynamicznej prowizji i narzędzi do promocji, by docierać do nowych klientów w FashionHero.
+          </p>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <OutlineBtn>Załóż konto sprzedawcy</OutlineBtn>
+            <OutlineBtn style={{ borderColor: 'rgba(255,255,255,0.5)', color: 'rgba(255,255,255,0.8)' }}>Dowiedz się więcej</OutlineBtn>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats bar */}
+      <section style={{ backgroundColor: charcoal, padding: '28px clamp(24px,6vw,80px)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 32, textAlign: 'center' }}>
+          {[['12 000+', 'Aktywnych sprzedawców'], ['2,4 mln', 'Klientów miesięcznie'], ['38 mln zł', 'Wypłacone sprzedawcom'], ['4,8 / 5', 'Średnia ocena platformy']].map(([val, label]) => (
+            <div key={label}>
+              <p style={{ fontSize: 28, fontWeight: 300, color: '#fff', margin: '0 0 4px' }}>{val}</p>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>{label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section style={{ padding: 'clamp(48px,6vw,80px) clamp(24px,6vw,80px)', backgroundColor: '#fafaf8' }}>
+        <p style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: warmGray, textAlign: 'center', margin: '0 0 8px' }}>Jak to działa</p>
+        <h2 style={{ fontSize: 'clamp(24px,3.5vw,36px)', fontWeight: 300, color: charcoal, textAlign: 'center', margin: '0 0 48px' }}>Trzy kroki do pierwszej sprzedaży</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 24, maxWidth: 1100, margin: '0 auto' }}>
+          {[
+            { img: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=700&q=80&auto=format&fit=crop', step: '01', title: 'Zarejestruj konto', desc: 'Wypełnij formularz i prześlij dokumenty. Weryfikacja trwa 24–48 godzin.' },
+            { img: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=700&q=80&auto=format&fit=crop', step: '02', title: 'Wystaw produkty', desc: 'Dodaj zdjęcia, opisy i ceny. Nasz kreator przeprowadzi Cię krok po kroku.' },
+            { img: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=700&q=80&auto=format&fit=crop', step: '03', title: 'Sprzedawaj i zarabiaj', desc: 'Przyjmuj zamówienia, wysyłaj paczki i odbieraj wypłaty co tydzień.' },
+          ].map(({ img, step, title, desc }) => (
+            <div key={step} style={{ overflow: 'hidden', backgroundColor: '#fff' }}>
+              <div style={{ position: 'relative', height: 240, overflow: 'hidden' }}>
+                <img src={img} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'} />
+                <div style={{ position: 'absolute', top: 16, left: 16, backgroundColor: '#fff', width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: charcoal }}>{step}</span>
+                </div>
+              </div>
+              <div style={{ padding: '20px 24px 28px' }}>
+                <h3 style={{ fontSize: 16, fontWeight: 500, color: charcoal, margin: '0 0 8px' }}>{title}</h3>
+                <p style={{ fontSize: 13, color: warmGray, lineHeight: 1.6, margin: 0 }}>{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Commission tiers */}
+      <section style={{ padding: 'clamp(48px,6vw,80px) clamp(24px,6vw,80px)', backgroundColor: '#fff' }}>
+        <p style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: warmGray, textAlign: 'center', margin: '0 0 8px' }}>Dynamiczny Silnik Marży</p>
+        <h2 style={{ fontSize: 'clamp(24px,3.5vw,36px)', fontWeight: 300, color: charcoal, textAlign: 'center', margin: '0 0 12px' }}>Prowizja, która nagradza jakość</h2>
+        <p style={{ fontSize: 15, color: warmGray, textAlign: 'center', maxWidth: 560, margin: '0 auto 48px', lineHeight: 1.7 }}>
+          Zamiast sztywnej stawki, Twoja prowizja zmienia się co miesiąc — automatycznie. Im lepiej obsługujesz klientów, tym mniej płacisz.
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, maxWidth: 1000, margin: '0 auto' }}>
+          {commissionTiers.map(t => (
+            <div key={t.tier} style={{ border: `2px solid ${t.color}22`, padding: '28px 24px', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, backgroundColor: t.color }} />
+              <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: t.color, margin: '0 0 8px' }}>{t.tier}</p>
+              <p style={{ fontSize: 40, fontWeight: 300, color: charcoal, margin: '0 0 12px', lineHeight: 1 }}>{t.rate}</p>
+              <p style={{ fontSize: 13, color: warmGray, lineHeight: 1.6, margin: 0 }}>{t.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Promoted Listings */}
+      <section style={{ padding: 'clamp(48px,6vw,80px) clamp(24px,6vw,80px)', backgroundColor: '#fafaf8' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 48, alignItems: 'center' }}>
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#5c6b4f', margin: '0 0 8px' }}>Promoted Listings</p>
+            <h2 style={{ fontSize: 'clamp(24px,3.5vw,36px)', fontWeight: 300, color: charcoal, margin: '0 0 16px' }}>Bądź widoczny tam,<br />gdzie kupują klienci</h2>
+            <p style={{ fontSize: 15, color: warmGray, lineHeight: 1.7, margin: '0 0 32px' }}>
+              Promoted Listings to płatna promocja, która umieszcza Twoje produkty w kluczowych miejscach platformy — strona główna, wyniki wyszukiwania, kategorie. Płacisz tylko za kliknięcia.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {promotedBenefits.map(b => (
+                <div key={b.title} style={{ display: 'flex', gap: 16 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#5c6b4f', flexShrink: 0, marginTop: 6 }} />
+                  <div>
+                    <p style={{ fontSize: 14, fontWeight: 500, color: charcoal, margin: '0 0 4px' }}>{b.title}</p>
+                    <p style={{ fontSize: 13, color: warmGray, lineHeight: 1.6, margin: 0 }}>{b.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ position: 'relative', overflow: 'hidden', minHeight: 380 }}>
+            <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=900&q=80&auto=format&fit=crop" alt="Sklep modowy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', minHeight: 380 }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 50%)' }} />
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 28, display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
+              <div>
+                <p style={{ fontSize: 32, fontWeight: 300, color: '#fff', margin: '0 0 4px' }}>+34%</p>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Klikalność</p>
+              </div>
+              <div>
+                <p style={{ fontSize: 32, fontWeight: 300, color: '#fff', margin: '0 0 4px' }}>2,1×</p>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Konwersja</p>
+              </div>
+              <div>
+                <p style={{ fontSize: 32, fontWeight: 300, color: '#fff', margin: '0 0 4px' }}>0,40 zł</p>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Min. CPC</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section style={{ padding: 'clamp(48px,6vw,80px) clamp(24px,6vw,80px)', backgroundColor: '#fff' }}>
+        <h2 style={{ fontSize: 'clamp(24px,3.5vw,36px)', fontWeight: 300, color: charcoal, textAlign: 'center', margin: '0 0 40px' }}>Najczęstsze pytania</h2>
+        <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {faqItems.map((item, i) => (
+            <div key={i} style={{ borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+              <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 0', textAlign: 'left' }}>
+                <span style={{ fontSize: 15, fontWeight: 400, color: charcoal }}>{item.q}</span>
+                <span style={{ color: warmGray, fontSize: 18, flexShrink: 0, marginLeft: 16 }}>{openFaq === i ? '−' : '+'}</span>
+              </button>
+              {openFaq === i && (
+                <p style={{ fontSize: 14, color: warmGray, lineHeight: 1.7, margin: '0 0 20px', paddingRight: 32 }}>{item.a}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section style={{ padding: 'clamp(48px,6vw,80px) clamp(24px,6vw,80px)', backgroundColor: '#2d3d2d', textAlign: 'center' }}>
+        <h2 style={{ fontSize: 'clamp(24px,4vw,40px)', fontWeight: 300, color: '#fff', margin: '0 0 16px' }}>Gotowy, żeby zacząć?</h2>
+        <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.7)', margin: '0 auto 36px', maxWidth: 460, lineHeight: 1.7 }}>
+          Rejestracja jest darmowa. Weryfikacja konta trwa 24–48 godzin i możesz od razu wystawiać pierwsze produkty.
+        </p>
+        <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <OutlineBtn style={{ padding: '12px 36px', fontSize: 12 }}>Załóż konto sprzedawcy</OutlineBtn>
+          <OutlineBtn style={{ padding: '12px 36px', fontSize: 12, borderColor: 'rgba(255,255,255,0.4)', color: 'rgba(255,255,255,0.7)' }}>Skontaktuj się z nami</OutlineBtn>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+// ─── App ──────────────────────────────────────────────────────────
+function App() {
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <AnnouncementBar />
+      <Header />
+      <SellersPage />
+      <Footer />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
