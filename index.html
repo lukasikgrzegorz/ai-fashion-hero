@@ -392,7 +392,7 @@ function ProductCard({ product }) {
   const bg = `radial-gradient(ellipse at 50% 60%, ${product.hex}33 0%, ${product.hex}11 40%, #ece9e2 70%)`;
   return (
     <div style={{ minWidth: 220, maxWidth: 220, flexShrink: 0 }}>
-      <a href="#" style={{ textDecoration: 'none', color: 'inherit' }}>
+      <a href="item.html" style={{ textDecoration: 'none', color: 'inherit' }}>
         <div style={{ position: 'relative', aspectRatio: '1/1', marginBottom: 10, background: bg, overflow: 'hidden' }}>
           {product.badge && (
             <span style={{ position: 'absolute', top: 12, left: 12, fontSize: 10, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', background: 'rgba(255,255,255,0.9)', padding: '4px 8px', zIndex: 10 }}>
@@ -614,7 +614,7 @@ function PromotedListingsSection() {
         {/* Cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24 }}>
           {promotedProducts.map(p => (
-            <a key={p.id} href="#" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', background: 'linear-gradient(160deg, #2e2a1c 0%, #231f13 100%)', border: `1px solid rgba(201,168,76,0.25)`, overflow: 'hidden', position: 'relative', transition: 'border-color 0.2s, transform 0.2s', cursor: 'pointer' }}
+            <a key={p.id} href="item.html" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', background: 'linear-gradient(160deg, #2e2a1c 0%, #231f13 100%)', border: `1px solid rgba(201,168,76,0.25)`, overflow: 'hidden', position: 'relative', transition: 'border-color 0.2s, transform 0.2s', cursor: 'pointer' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.7)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.25)'; e.currentTarget.style.transform = 'translateY(0)'; }}
             >

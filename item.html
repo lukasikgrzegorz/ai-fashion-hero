@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cloud Runner — FashionHero</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            charcoal: '#212121',
+            'warm-gray': '#6b6b6b',
+            'cream-light': '#f5f4f1',
+          },
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .mobile-only { display: flex; }
+    .desktop-only { display: none; }
+    .desktop-inline { display: none; }
+    @media (min-width: 1024px) {
+      .mobile-only { display: none !important; }
+      .desktop-only { display: flex !important; }
+      .desktop-inline { display: block !important; }
+    }
+    .sm-flex { display: none; }
+    @media (min-width: 640px) {
+      .sm-flex { display: flex !important; }
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+// ─── Design tokens ────────────────────────────────────────────────
+const charcoal = '#212121';
+const warmGray = '#6b6b6b';
+const creamLight = '#f5f4f1';
+
+// ─── Data ─────────────────────────────────────────────────────────
+const product = {
+  id: "1",
+  name: "Cloud Runner",
+  slug: "cloud-runner",
+  category: "men",
+  productCategory: "shoes",
+  collections: ["mens", "new-arrivals", "best-sellers", "all"],
+  price: 479,
+  rating: 4.7,
+  reviewCount: 312,
+  sellerId: "s1",
+  sellerName: "NovaSport",
+  colors: [
+    { name: "Jet Black", hex: "#1a1a1a", image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80&fit=crop" },
+    { name: "Stone White", hex: "#f0ede6", image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&q=80&fit=crop" },
+    { name: "Olive", hex: "#5c6b4f", image: "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=800&q=80&fit=crop" },
+  ],
+  sizes: [38, 39, 40, 41, 42, 43, 44, 45],
+  description: "Lekki but do codziennego biegania z oddychającą dzianinową cholewką i amortyzowaną podeszwą. Stworzony dla komfortu od rana do nocy.",
+  features: ["Oddychająca cholewka z siateczki", "Amortyzowana wkładka", "Lekka podeszwa środkowa EVA", "Podeszwa zewnętrzna z naturalnej gumy"],
+  materials: "Cholewka: Poliester z recyklingu. Podeszwa środkowa: EVA na bazie trzciny cukrowej. Podeszwa zewnętrzna: Naturalna guma.",
+  care: "Wyjmij wkładki i sznurowadła. Prać w pralce w zimnej wodzie na delikatnym cyklu. Suszyć na powietrzu.",
+  badge: "BESTSELLER",
+  images: [
+    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80&fit=crop",
+    "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&q=80&fit=crop",
+    "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=800&q=80&fit=crop",
+  ],
+};
+
+const relatedProducts = [
+  { id: '2', name: 'Trail Pacer', color: 'Leśna zieleń', hex: '#3d5a3d', price: 559, image: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=600&q=80&fit=crop' },
+  { id: '3', name: 'Dash Sport', color: 'Burzowy błękit', hex: '#4a6fa5', price: 579, image: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=600&q=80&fit=crop' },
+  { id: '4', name: 'Breeze Slip-On', color: 'Piasek', hex: '#c4b59a', price: 429, image: 'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=600&q=80&fit=crop' },
+  { id: '5', name: 'Urban Walker', color: 'Kredowa biel', hex: '#f0ede6', price: 499, image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&q=80&fit=crop' },
+];
+
+// ─── SVG Icons ────────────────────────────────────────────────────
+const iconStyle = { width: 20, height: 20 };
+function SearchIcon() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={iconStyle}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>; }
+function CartIcon() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={iconStyle}><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>; }
+function HeartIcon({ filled, style }) { return <svg viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{...iconStyle, ...style}}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>; }
+function MenuIcon() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" style={iconStyle}><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>; }
+function CloseIcon() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" style={iconStyle}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>; }
+function ChevronLeftIcon() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={iconStyle}><polyline points="15 18 9 12 15 6"/></svg>; }
+function ChevronRightIcon() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={iconStyle}><polyline points="9 18 15 12 9 6"/></svg>; }
+function StarIcon({ filled, style }) {
+  return (
+    <svg viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14, ...style }}>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+}
+function PlusIcon({ style }) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, ...style }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
+}
+function MinusIcon({ style }) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, ...style }}><line x1="5" y1="12" x2="19" y2="12"/></svg>;
+}
+
+// ─── Components ───────────────────────────────────────────────────
+
+function AnnouncementBar() {
+  return (
+    <div style={{ backgroundColor: charcoal, color: '#fff', height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.05em', margin: 0 }}>
+        Darmowa dostawa przy zamówieniach powyżej 99 zł &nbsp;·&nbsp; Łatwe zwroty
+      </p>
+    </div>
+  );
+}
+
+function Header() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: charcoal, display: 'flex', alignItems: 'center' };
+
+  return (
+    <header style={{ backgroundColor: '#fff', position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+      <nav style={{ display: 'flex', height: 56, alignItems: 'center', padding: '0 24px', maxWidth: 1280, margin: '0 auto' }}>
+        <button className="mobile-only" onClick={() => setMobileOpen(o => !o)} style={{ ...iconBtn, marginRight: 12 }}>
+          {mobileOpen ? <CloseIcon /> : <MenuIcon />}
+        </button>
+
+        <a href="index.html" style={{ marginRight: 32, textDecoration: 'none' }}>
+          <span style={{ fontSize: 20, fontWeight: 600, fontStyle: 'italic', letterSpacing: '-0.03em', color: charcoal }}>FashionHero</span>
+        </a>
+
+        <div className="desktop-only" style={{ alignItems: 'center', gap: 24, flex: 1 }}>
+          {['MĘŻCZYŹNI', 'KOBIETY', 'WYPRZEDAŻ', 'NOWOŚCI'].map(item => (
+            <a key={item} href="index.html" style={{ fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: charcoal, textDecoration: 'none' }}>{item}</a>
+          ))}
+          <a href="sellers.html" style={{ fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#5c6b4f', textDecoration: 'none' }}>Dla Sprzedawców</a>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }}>
+          <button style={iconBtn}><SearchIcon /></button>
+          <button style={iconBtn} className="sm-flex"><HeartIcon /></button>
+          <button style={iconBtn}><CartIcon /></button>
+        </div>
+      </nav>
+
+      {mobileOpen && (
+        <div className="mobile-only" style={{ borderTop: '1px solid rgba(0,0,0,0.05)', flexDirection: 'column', backgroundColor: '#fff' }}>
+          <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {['MĘŻCZYŹNI', 'KOBIETY', 'WYPRZEDAŻ', 'NOWOŚCI'].map(item => (
+              <a key={item} href="index.html" style={{ fontSize: 13, padding: '8px 0', color: charcoal, textDecoration: 'none' }}>{item}</a>
+            ))}
+            <a href="sellers.html" style={{ fontSize: 13, padding: '8px 0', color: '#5c6b4f', fontWeight: 500, textDecoration: 'none' }}>Dla Sprzedawców</a>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
+
+function StarRating({ rating, count }) {
+  const fullStars = Math.floor(rating);
+  const hasHalf = rating - fullStars >= 0.5;
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className="flex gap-0.5 text-charcoal">
+        {Array.from({ length: 5 }, (_, i) => (
+          <StarIcon key={i} filled={i < fullStars || (i === fullStars && hasHalf)} />
+        ))}
+      </div>
+      <span className="text-xs text-warm-gray">({count})</span>
+    </div>
+  );
+}
+
+function galleryGradient(hex) {
+  return `radial-gradient(ellipse at 50% 55%, ${hex}44 0%, ${hex}22 35%, #ece9e2 65%)`;
+}
+
+function ImageGallery({ images, productName, colorHex = "#8a7d6b" }) {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [isZooming, setIsZooming] = useState(false);
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
+  const mainRef = useRef(null);
+
+  const handleMouseMove = useCallback((e) => {
+    if (!mainRef.current) return;
+    const rect = mainRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPos({ x, y });
+  }, []);
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div
+        ref={mainRef}
+        className="relative aspect-square overflow-hidden cursor-zoom-in"
+        onMouseEnter={() => setIsZooming(true)}
+        onMouseLeave={() => setIsZooming(false)}
+        onMouseMove={handleMouseMove}
+        style={{ background: galleryGradient(colorHex) }}
+      >
+        <div
+          className="absolute inset-0 transition-transform duration-200 ease-out"
+          style={{
+            transform: isZooming ? "scale(2)" : "scale(1)",
+            transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
+          }}
+        >
+          <img
+            src={images[selectedIndex]}
+            alt={productName}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+        {images.map((img, idx) => (
+          <button
+            key={idx}
+            onClick={() => setSelectedIndex(idx)}
+            className={`flex-shrink-0 w-20 h-20 border-2 transition-colors ${selectedIndex === idx ? 'border-charcoal' : 'border-transparent'}`}
+            style={{ background: galleryGradient(colorHex) }}
+          >
+            <img src={img} alt={`${productName} thumbnail ${idx}`} className="w-full h-full object-cover" />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SizeChartModal({ isOpen, onClose }) {
+  if (!isOpen) return null;
+
+  const sizes = [
+    { eu: 38, uk: 5, us: 5.5, cm: 24.5 },
+    { eu: 39, uk: 6, us: 6.5, cm: 25.0 },
+    { eu: 40, uk: 6.5, us: 7, cm: 25.5 },
+    { eu: 41, uk: 7.5, us: 8, cm: 26.5 },
+    { eu: 42, uk: 8, us: 8.5, cm: 27.0 },
+    { eu: 43, uk: 9, us: 9.5, cm: 28.0 },
+    { eu: 44, uk: 9.5, us: 10, cm: 28.5 },
+    { eu: 45, uk: 10.5, us: 11, cm: 29.5 },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-charcoal">Tabela Rozmiarów</h3>
+          <button onClick={onClose} className="text-warm-gray hover:text-charcoal transition-colors p-1">
+            <CloseIcon />
+          </button>
+        </div>
+        <div className="p-6">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="py-3 font-semibold text-charcoal">EU</th>
+                  <th className="py-3 font-semibold text-charcoal">UK</th>
+                  <th className="py-3 font-semibold text-charcoal">US</th>
+                  <th className="py-3 font-semibold text-charcoal">CM</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {sizes.map(s => (
+                  <tr key={s.eu} className="hover:bg-gray-50/50">
+                    <td className="py-3 font-medium text-charcoal">{s.eu}</td>
+                    <td className="py-3 text-warm-gray">{s.uk}</td>
+                    <td className="py-3 text-warm-gray">{s.us}</td>
+                    <td className="py-3 text-warm-gray">{s.cm}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-6 text-[11px] text-warm-gray leading-relaxed italic">
+            * Rozmiary mogą się nieznacznie różnić w zależności od modelu. Jeśli wahasz się między dwoma rozmiarami, zalecamy wybór większego.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProductInfo({ product }) {
+  const [selectedColor, setSelectedColor] = useState(product.colors[0]);
+  const [selectedSize, setSelectedSize] = useState(null);
+  const [isSizeChartOpen, setIsSizeChartOpen] = useState(false);
+
+  useEffect(() => {
+    if (isSizeChartOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [isSizeChartOpen]);
+
+  const deliveryDate = useMemo(() => {
+    const now = new Date();
+    const start = new Date(now.getTime() + 3 * 86400000);
+    const end = new Date(now.getTime() + 5 * 86400000);
+    const fmt = new Intl.DateTimeFormat("pl-PL", { month: "short", day: "numeric" });
+    return `${fmt.format(start)} - ${fmt.format(end)}`;
+  }, []);
+
+  return (
+    <div className="flex flex-col gap-5">
+      <SizeChartModal isOpen={isSizeChartOpen} onClose={() => setIsSizeChartOpen(false)} />
+      <nav className="flex items-center gap-1.5 text-[11px] text-warm-gray/70">
+        <a href="index.html" className="hover:text-charcoal">Home</a>
+        <span>/</span>
+        <a href="index.html" className="hover:text-charcoal">Obuwie Męskie</a>
+        <span>/</span>
+        <span className="text-charcoal/60">{product.name}</span>
+      </nav>
+
+      <div>
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-2xl md:text-3xl font-normal text-charcoal mb-2">
+            {product.name}
+          </h1>
+          <button className="text-warm-gray hover:text-charcoal transition-colors">
+            <HeartIcon style={{ width: 24, height: 24 }} />
+          </button>
+        </div>
+        <StarRating rating={product.rating} count={product.reviewCount} />
+        <div className="text-[12px] text-warm-gray mt-1">
+          Sprzedawane przez <a href="sellers.html" className="underline hover:text-charcoal">{product.sellerName}</a>
+          <span className="inline-block ml-1 text-[9px] bg-charcoal/10 text-charcoal/70 px-1 py-0.5 rounded uppercase tracking-wide">Pro</span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <span className="text-xl font-medium text-charcoal">{product.price} zł</span>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <span className="inline-block w-2 h-2 rounded-full bg-green-500" />
+        <span className="text-xs text-green-700 font-medium">W magazynie — Gotowe do wysyłki</span>
+      </div>
+
+      <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 flex flex-col gap-6 shadow-sm">
+        <div>
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal block mb-3">Kolor: {selectedColor.name}</span>
+          <div className="flex gap-3">
+            {product.colors.map(color => (
+              <button
+                key={color.name}
+                onClick={() => setSelectedColor(color)}
+                className={`w-8 h-8 rounded-full border transition-all ${selectedColor.name === color.name ? 'ring-2 ring-charcoal ring-offset-2' : 'border-gray-200 hover:scale-110'}`}
+                style={{ backgroundColor: color.hex }}
+                title={color.name}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal">
+              Wybierz rozmiar (EU): {selectedSize && <span className="font-bold ml-1">{selectedSize}</span>}
+            </span>
+            <button 
+              onClick={() => setIsSizeChartOpen(true)}
+              className="text-[11px] text-warm-gray underline hover:text-charcoal transition-colors"
+            >
+              Tabela rozmiarów
+            </button>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {product.sizes.map(size => (
+              <button
+                key={size}
+                onClick={() => setSelectedSize(size)}
+                className={`h-12 text-sm font-medium border rounded-md transition-all duration-200 flex items-center justify-center ${
+                  selectedSize === size 
+                    ? 'bg-charcoal text-white border-charcoal shadow-md border-2' 
+                    : 'bg-white text-charcoal border-gray-200 hover:border-charcoal hover:bg-gray-50'
+                }`}
+              >
+                {size}
+              </button>
+            ))}
+          </div>
+          {!selectedSize && (
+            <p className="mt-2 text-[10px] text-warm-gray italic animate-pulse">Wybierz rozmiar, aby dodać do koszyka</p>
+          )}
+        </div>
+
+        <button
+          disabled={!selectedSize}
+          className="w-full py-4 bg-charcoal text-white text-[12px] font-medium uppercase tracking-[0.6px] rounded-full hover:bg-black transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed transform active:scale-[0.98]"
+        >
+          {selectedSize ? `DODAJ DO KOSZYKA — ${product.price} zł` : "WYBIERZ ROZMIAR"}
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-2 pt-2">
+        <p className="text-xs text-warm-gray">Darmowa dostawa dla zamówień powyżej 299 zł</p>
+        <p className="text-xs text-warm-gray">Przewidywana dostawa: {deliveryDate}</p>
+        <p className="text-xs text-warm-gray">Darmowe zwroty</p>
+      </div>
+    </div>
+  );
+}
+
+function AccordionItem({ title, content, isOpen, onToggle }) {
+  return (
+    <div className="border-b border-gray-100">
+      <button onClick={onToggle} className="w-full flex items-center justify-between py-4 text-left">
+        <span className="text-xs font-semibold uppercase tracking-wider text-charcoal">{title}</span>
+        {isOpen ? <MinusIcon /> : <PlusIcon />}
+      </button>
+      {isOpen && (
+        <div className="pb-4 text-sm text-warm-gray leading-relaxed whitespace-pre-line">
+          {content}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProductDetailsAccordion({ product }) {
+  const [openIdx, setOpenIdx] = useState(0);
+  const sections = [
+    { title: "Opis", content: product.description },
+    { title: "Cechy", content: product.features.map(f => `• ${f}`).join('\n') },
+    { title: "Materiały", content: product.materials },
+    { title: "Pielęgnacja", content: product.care }
+  ];
+
+  return (
+    <div className="mt-12 border-t border-gray-100 max-w-2xl">
+      {sections.map((sec, i) => (
+        <AccordionItem
+          key={i}
+          title={sec.title}
+          content={sec.content}
+          isOpen={openIdx === i}
+          onToggle={() => setOpenIdx(openIdx === i ? null : i)}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ProductCard({ product }) {
+  return (
+    <a href="item.html" className="group block">
+      <div className="aspect-[4/5] bg-cream-light overflow-hidden mb-3">
+        <img src={product.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+      </div>
+      <h3 className="text-xs font-medium text-charcoal">{product.name}</h3>
+      <p className="text-[11px] text-warm-gray">{product.color}</p>
+      <p className="text-xs mt-1 text-charcoal">{product.price} zł</p>
+    </a>
+  );
+}
+
+function RelatedProducts() {
+  const scrollRef = useRef(null);
+  const scroll = (dir) => {
+    if (!scrollRef.current) return;
+    scrollRef.current.scrollBy({ left: dir === 'left' ? -300 : 300, behavior: 'smooth' });
+  };
+
+  return (
+    <section className="py-16">
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-lg font-medium text-charcoal">Może Ci się spodobać</h2>
+        <div className="flex gap-2">
+          <button onClick={() => scroll('left')} className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-full hover:border-charcoal"><ChevronLeftIcon /></button>
+          <button onClick={() => scroll('right')} className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-full hover:border-charcoal"><ChevronRightIcon /></button>
+        </div>
+      </div>
+      <div ref={scrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+        {relatedProducts.map(p => (
+          <div key={p.id} className="flex-shrink-0 w-48 md:w-64 snap-start">
+            <ProductCard product={p} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="bg-charcoal text-white pt-16 pb-8">
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
+        <div className="col-span-1 md:col-span-1">
+          <span className="text-xl font-semibold italic tracking-tighter mb-6 block">FashionHero</span>
+          <p className="text-xs text-warm-gray leading-relaxed max-w-xs">Wspieramy niezależnych sprzedawców i promujemy zrównoważoną modę. Każdy krok ma znaczenie.</p>
+        </div>
+        <div>
+          <h4 className="text-[11px] font-semibold uppercase tracking-widest mb-6">Pomoc</h4>
+          <ul className="text-xs text-warm-gray space-y-4">
+            <li><a href="#" className="hover:text-white transition-colors">FAQ / Kontakt</a></li>
+            <li><a href="#" className="hover:text-white transition-colors">Dostawa i Zwroty</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="text-[11px] font-semibold uppercase tracking-widest mb-6">Sklep</h4>
+          <ul className="text-xs text-warm-gray space-y-4">
+            <li><a href="#" className="hover:text-white transition-colors">Mężczyźni</a></li>
+            <li><a href="#" className="hover:text-white transition-colors">Kobiety</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="text-[11px] font-semibold uppercase tracking-widest mb-6">Zapisz się</h4>
+          <p className="text-xs text-warm-gray mb-4 leading-relaxed">Otrzymuj nowości i oferty specjalne prosto na swój e-mail.</p>
+          <div className="flex border-b border-warm-gray/30 py-2">
+            <input type="email" placeholder="Twój e-mail" className="bg-transparent border-none text-xs w-full focus:outline-none placeholder:text-warm-gray/50" />
+            <button className="text-[10px] font-bold uppercase tracking-widest hover:text-warm-gray transition-colors">OK</button>
+          </div>
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-white/5 flex flex-col md:row justify-between items-center gap-4">
+        <p className="text-[10px] text-warm-gray">© 2026 FashionHero. Wszelkie prawa zastrzeżone.</p>
+        <div className="flex gap-6 text-[10px] text-warm-gray uppercase tracking-widest">
+          <a href="#" className="hover:text-white">Polityka prywatności</a>
+          <a href="#" className="hover:text-white">Regulamin</a>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+function App() {
+  return (
+    <div className="min-h-screen bg-white">
+      <AnnouncementBar />
+      <Header />
+      <main className="max-w-7xl mx-auto px-6 py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-12 lg:gap-20">
+          <ImageGallery images={product.images} productName={product.name} />
+          <ProductInfo product={product} />
+        </div>
+        <ProductDetailsAccordion product={product} />
+        <RelatedProducts />
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
