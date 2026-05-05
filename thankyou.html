@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dziękujemy — FashionHero Smart Trends</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            charcoal: '#212121',
+            'warm-gray': '#6b6b6b',
+            gold: '#c9a84c',
+          },
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background-color: #fcfcfb; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState } = React;
+
+function App() {
+  const [email, setEmail] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!email) return;
+    setSubmitted(true);
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* Nav */}
+      <header className="bg-white border-b border-gray-100">
+        <nav className="flex h-14 items-center px-6 max-w-7xl mx-auto">
+          <a href="index.html" className="no-underline">
+            <span className="text-xl font-semibold italic tracking-tighter text-charcoal">FashionHero</span>
+          </a>
+        </nav>
+      </header>
+
+      <main className="flex-1 flex items-center justify-center px-6 py-16">
+        <div className="max-w-lg w-full text-center">
+
+          {/* Icon */}
+          <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-gold/20">
+            <svg className="w-8 h-8 text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+
+          <h1 className="text-3xl font-light text-charcoal mb-4">Dziękujemy za zainteresowanie!</h1>
+          <p className="text-warm-gray text-sm leading-relaxed mb-10">
+            Smart Trends to funkcja, którą aktywnie rozwijamy. Zostaw e-mail — dasz nam znać, że jest dla Ciebie ważna, i jako pierwszy dowiesz się o premierze.
+          </p>
+
+          {!submitted ? (
+            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="Twój adres e-mail"
+                className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold bg-white"
+              />
+              <button
+                type="submit"
+                className="px-6 py-3 bg-charcoal text-white text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-charcoal/85 transition-colors whitespace-nowrap"
+              >
+                Powiadom mnie
+              </button>
+            </form>
+          ) : (
+            <div className="inline-flex items-center gap-2 px-5 py-3 bg-green-50 border border-green-100 rounded-xl text-sm text-green-700 font-medium">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Zapisano! Odezwiemy się przy premierze.
+            </div>
+          )}
+
+          <div className="mt-12 pt-8 border-t border-gray-100">
+            <p className="text-xs text-warm-gray mb-4 uppercase tracking-widest font-medium">Wróć do przeglądania</p>
+            <div className="flex justify-center gap-4 flex-wrap">
+              <a href="trends.html" className="text-xs font-medium text-gold no-underline hover:underline">← Smart Trends (demo)</a>
+              <a href="sellers.html" className="text-xs font-medium text-warm-gray no-underline hover:underline">Dla Sprzedawców</a>
+              <a href="index.html" className="text-xs font-medium text-warm-gray no-underline hover:underline">Sklep</a>
+            </div>
+          </div>
+
+        </div>
+      </main>
+
+      <footer className="py-6 border-t border-gray-100 bg-white">
+        <p className="text-center text-[10px] text-warm-gray uppercase tracking-widest">© 2026 FashionHero</p>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

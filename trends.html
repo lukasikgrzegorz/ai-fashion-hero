@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Trends — FashionHero</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            charcoal: '#212121',
+            'warm-gray': '#6b6b6b',
+            'cream-light': '#f5f4f1',
+            gold: '#c9a84c',
+          },
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background-color: #fcfcfb; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useMemo } = React;
+
+// ─── Social Trends ─────────────────────────────────────────────────
+
+const DEFAULT_PLATFORMS = [
+  {
+    id: 'tiktok',
+    name: 'TikTok',
+    icon: (
+      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1.04-.1z"/>
+      </svg>
+    ),
+    trends: [
+      { label: '#Gorpcore', change: 240, dir: 'up' },
+      { label: '#ChunkySneakers', change: 180, dir: 'up' },
+      { label: '#MinimalistStyle', change: 12, dir: 'flat' },
+    ],
+  },
+  {
+    id: 'facebook',
+    name: 'Facebook / Instagram',
+    icon: (
+      <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.53 11.16 6 13.24 6c.86 0 1.76.16 1.76.16v1.94h-1c-.98 0-1.28.6-1.28 1.23V12h2.18l-.35 3h-1.83v6.8C18.56 20.87 22 16.84 22 12z"/>
+      </svg>
+    ),
+    trends: [
+      { label: 'Eco Leather', change: 115, dir: 'up' },
+      { label: 'Vintage Denim', change: 85, dir: 'up' },
+      { label: 'Summer Dresses', change: 15, dir: 'down' },
+    ],
+  },
+];
+
+const AVAILABLE_PLATFORMS = [
+  { id: 'pinterest', name: 'Pinterest', trends: [{ label: 'Cottagecore', change: 95, dir: 'up' }, { label: 'Dark Academia', change: 60, dir: 'up' }, { label: 'Y2K Revival', change: 140, dir: 'up' }] },
+  { id: 'twitter', name: 'X / Twitter', trends: [{ label: '#OOTD', change: 45, dir: 'up' }, { label: '#SlowFashion', change: 33, dir: 'flat' }, { label: '#FastFashion', change: 22, dir: 'down' }] },
+  { id: 'youtube', name: 'YouTube', trends: [{ label: 'Get Ready With Me', change: 210, dir: 'up' }, { label: 'Thrift Haul', change: 88, dir: 'up' }, { label: 'Luxury Unboxing', change: 5, dir: 'flat' }] },
+  { id: 'snapchat', name: 'Snapchat', trends: [{ label: 'Streetwear Sets', change: 55, dir: 'up' }, { label: 'Neon Accents', change: 70, dir: 'up' }, { label: 'Preppy Style', change: 18, dir: 'down' }] },
+];
+
+function dirColor(dir) {
+  if (dir === 'up') return 'text-green-500';
+  if (dir === 'down') return 'text-red-400';
+  return 'text-gray-400';
+}
+function dirArrow(dir) {
+  if (dir === 'up') return '↗';
+  if (dir === 'down') return '↘';
+  return '→';
+}
+
+function AddSourceModal({ active, onClose, onAdd, onRemove }) {
+  const all = [...DEFAULT_PLATFORMS, ...AVAILABLE_PLATFORMS];
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }} onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-between items-center mb-5">
+          <h4 className="text-sm font-bold uppercase tracking-wider text-charcoal">Zarządzaj źródłami</h4>
+          <button onClick={onClose} className="text-warm-gray hover:text-charcoal text-xl leading-none">✕</button>
+        </div>
+        <p className="text-xs text-warm-gray mb-4">Zaznacz platformy, które chcesz śledzić w panelu trendów.</p>
+        <div className="space-y-2">
+          {all.map(p => {
+            const isActive = active.some(a => a.id === p.id);
+            return (
+              <div key={p.id} className="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors">
+                <span className="text-sm font-medium text-charcoal">{p.name}</span>
+                <button
+                  onClick={() => isActive ? onRemove(p.id) : onAdd(p)}
+                  className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full transition-colors ${isActive ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-gold/10 text-gold hover:bg-gold/20'}`}
+                >
+                  {isActive ? '− Usuń' : '+ Dodaj'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+        <button onClick={onClose} className="mt-5 w-full py-2.5 text-xs font-bold uppercase tracking-widest bg-charcoal text-white rounded-xl hover:bg-charcoal/90 transition-colors">
+          Gotowe
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SocialTrends() {
+  const [platforms, setPlatforms] = useState(DEFAULT_PLATFORMS);
+  const [showModal, setShowModal] = useState(false);
+
+  const addPlatform = (p) => setPlatforms(prev => [...prev, p]);
+  const removePlatform = (id) => setPlatforms(prev => prev.filter(p => p.id !== id));
+
+  return (
+    <>
+      {showModal && <AddSourceModal active={platforms} onClose={() => setShowModal(false)} onAdd={addPlatform} onRemove={removePlatform} />}
+      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-4">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-charcoal">Trendy Social Media (Odzież)</h3>
+          <button
+            onClick={() => setShowModal(true)}
+            className="text-[10px] font-bold uppercase tracking-widest text-gold bg-gold/10 px-3 py-1.5 rounded-full hover:bg-gold/20 transition-colors"
+          >
+            ⚙ Konfiguruj
+          </button>
+        </div>
+
+        {platforms.length === 0 && (
+          <div className="text-center py-8 text-warm-gray text-sm">Brak źródeł. Kliknij "Konfiguruj", aby dodać platformy.</div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {platforms.map(platform => (
+            <div key={platform.id} className="border border-gray-100 rounded-xl p-4 hover:border-gray-200 transition-colors">
+              <div className="flex justify-between items-center mb-3">
+                <span className="font-semibold text-charcoal flex items-center gap-2">
+                  {platform.icon || <span className="w-4 h-4 inline-block bg-gray-200 rounded-full" />}
+                  {platform.name}
+                </span>
+                <span className="text-[10px] text-warm-gray uppercase tracking-widest">Ostatnie 7 dni</span>
+              </div>
+              <ul className="space-y-3">
+                {platform.trends.map(t => (
+                  <li key={t.label} className="flex justify-between items-center text-sm">
+                    <span className="text-charcoal bg-gray-50 px-2 py-1 rounded">{t.label}</span>
+                    <span className={`font-bold ${dirColor(t.dir)}`}>{dirArrow(t.dir)} {t.change}%</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function Header() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#212121', display: 'flex', alignItems: 'center' };
+
+  return (
+    <header style={{ backgroundColor: '#fff', position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+      <nav style={{ display: 'flex', height: 56, alignItems: 'center', padding: '0 24px', position: 'relative' }}>
+        <button
+          onClick={() => setMobileOpen(o => !o)}
+          style={{ ...iconBtn, marginRight: 12, display: 'flex' }}
+          className="lg:hidden"
+        >
+          {mobileOpen
+            ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" style={{ width: 20, height: 20 }}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" style={{ width: 20, height: 20 }}><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          }
+        </button>
+
+        <a href="index.html" style={{ marginRight: 32, textDecoration: 'none', flexShrink: 0 }}>
+          <span style={{ fontSize: 20, fontWeight: 600, fontStyle: 'italic', letterSpacing: '-0.03em', color: '#212121' }}>FashionHero</span>
+        </a>
+
+        <div className="hidden lg:flex" style={{ alignItems: 'center', gap: 24, flex: 1 }}>
+          {['MĘŻCZYŹNI', 'KOBIETY', 'WYPRZEDAŻ', 'NOWOŚCI'].map(item => (
+            <a key={item} href="index.html" style={{ fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#212121', textDecoration: 'none' }}>{item}</a>
+          ))}
+          <a href="sellers.html" style={{ fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#5c6b4f', textDecoration: 'none' }}>Dla Sprzedawców</a>
+          <a href="trends.html" style={{ fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#c9a84c', textDecoration: 'none', borderBottom: '2px solid #c9a84c', paddingBottom: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+            Smart Trends
+            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', color: '#fff', backgroundColor: '#c9a84c', borderRadius: 4, padding: '1px 5px', lineHeight: 1.6 }}>DEMO</span>
+          </a>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }}>
+          <button style={iconBtn}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ width: 20, height: 20 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+          <button style={iconBtn}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ width: 20, height: 20 }}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+          <button style={iconBtn}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ width: 20, height: 20 }}><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          </button>
+        </div>
+      </nav>
+
+      <div className="lg:hidden" style={{ overflow: 'hidden', maxHeight: mobileOpen ? 400 : 0, transition: 'max-height 0.3s ease', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+        <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {['MĘŻCZYŹNI', 'KOBIETY', 'WYPRZEDAŻ', 'NOWOŚCI'].map(item => (
+            <a key={item} href="index.html" style={{ fontSize: 13, padding: '8px 0', color: '#212121', textDecoration: 'none' }}>{item}</a>
+          ))}
+          <a href="sellers.html" style={{ fontSize: 13, padding: '8px 0', color: '#5c6b4f', fontWeight: 500, textDecoration: 'none' }}>Dla Sprzedawców</a>
+          <a href="trends.html" style={{ fontSize: 13, padding: '8px 0', color: '#c9a84c', fontWeight: 500, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+            Smart Trends
+            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', color: '#fff', backgroundColor: '#c9a84c', borderRadius: 4, padding: '1px 5px', lineHeight: 1.6 }}>DEMO</span>
+          </a>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function SalesReports() {
+  return (
+    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm h-full flex flex-col gap-6">
+      <h3 className="text-sm font-bold uppercase tracking-wider text-charcoal">Raporty Sprzedaży FashionHero</h3>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-gray-50 p-4 rounded-xl text-center">
+          <p className="text-[10px] uppercase tracking-widest text-warm-gray mb-1">Top Kategoria</p>
+          <p className="text-lg font-semibold text-charcoal">Sneakersy Eco</p>
+          <p className="text-xs text-green-600 font-bold mt-1">+34% m/m</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-xl text-center">
+          <p className="text-[10px] uppercase tracking-widest text-warm-gray mb-1">Średnia Konwersja</p>
+          <p className="text-lg font-semibold text-charcoal">4.2%</p>
+          <p className="text-xs text-green-600 font-bold mt-1">+0.8% m/m</p>
+        </div>
+      </div>
+
+      <div>
+        <p className="text-xs font-semibold text-charcoal mb-3">Najszybciej rosnące podkategorie:</p>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-warm-gray font-medium">1. Obuwie Trailowe</span>
+            <div className="w-1/2 h-2 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-charcoal rounded-full" style={{width:'85%'}}></div></div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-warm-gray font-medium">2. Wsuwane (Slip-on)</span>
+            <div className="w-1/2 h-2 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-charcoal rounded-full" style={{width:'60%'}}></div></div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-warm-gray font-medium">3. Torby z recyklingu</span>
+            <div className="w-1/2 h-2 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-charcoal rounded-full" style={{width:'45%'}}></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-gray-100 pt-4">
+        <p className="text-xs font-semibold text-charcoal mb-3 flex items-center gap-2">
+          <span className="text-red-400">↘</span> Spadające kategorie
+        </p>
+        <div className="space-y-2">
+          {[
+            { category: 'Sukienki letnie', drop: '-28%', reason: 'Koniec sezonu, spadek wyszukiwań' },
+            { category: 'Klapki plażowe', drop: '-19%', reason: 'Niska retencja klientów' },
+            { category: 'Bluzy oversize', drop: '-14%', reason: 'Nasycenie rynku, rosnąca konkurencja' },
+          ].map(({ category, drop, reason }) => (
+            <div key={category} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
+              <div>
+                <span className="text-sm font-medium text-charcoal">{category}</span>
+                <p className="text-[10px] text-warm-gray mt-0.5">{reason}</p>
+              </div>
+              <span className="text-sm font-bold text-red-400">{drop}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const RECOMMENDATIONS = [
+  { icon: '🎯', title: 'Rozszerz ofertę Gorpcore', desc: 'Ten styl rośnie 240% na TikToku — Twoja kategoria outdoorowa ma potencjał do podwojenia sprzedaży w ciągu 30 dni.', badge: 'Wysoki priorytet', badgeColor: 'bg-green-100 text-green-700' },
+  { icon: '📦', title: 'Uzupełnij stany Eco Leather', desc: 'Prognozujemy wzrost popytu o 30% w Q2. Obecny stan magazynowy wystarczy na 12 dni przy obecnym tempie sprzedaży.', badge: 'Pilne', badgeColor: 'bg-red-100 text-red-600' },
+  { icon: '💰', title: 'Optymalizuj ceny Vintage Denim', desc: 'Podobne SKU u konkurencji są wyceniane 15–22% wyżej. Masz przestrzeń do podniesienia marży bez ryzyka utraty konwersji.', badge: 'Szansa cenowa', badgeColor: 'bg-gold/20 text-yellow-700' },
+  { icon: '🚫', title: 'Ogranicz promocję Summer Dresses', desc: 'Zainteresowanie spada. Przesuń budżet reklamowy na rosnące kategorie i unikaj dodatkowych promocji przez najbliższe 3 tygodnie.', badge: 'Uwaga', badgeColor: 'bg-orange-100 text-orange-600' },
+];
+
+function Recommendations() {
+  return (
+    <div className="bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-sm mt-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-2 border-b border-gray-100 pb-5">
+        <div>
+          <h3 className="text-base font-bold uppercase tracking-wider text-charcoal">Rekomendacje dla Ciebie</h3>
+          <p className="text-xs text-warm-gray mt-1">Na podstawie predykcji popytu i analizy Twoich danych sprzedażowych</p>
+        </div>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gold/10 rounded-full text-[10px] font-bold text-gold uppercase tracking-widest border border-gold/20">
+          ✦ AI generated
+        </span>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {RECOMMENDATIONS.map(r => (
+          <div key={r.title} className="flex gap-4 p-4 rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all">
+            <div className="text-2xl flex-shrink-0 mt-0.5">{r.icon}</div>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <span className="text-sm font-semibold text-charcoal">{r.title}</span>
+                <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${r.badgeColor}`}>{r.badge}</span>
+              </div>
+              <p className="text-xs text-warm-gray leading-relaxed">{r.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DynamicPredictionChart() {
+  const canvasRef = useRef(null);
+  const chartRef = useRef(null);
+  const [period, setPeriod] = useState('30'); // 30, 60, 90
+  const [category, setCategory] = useState('sneakers'); // sneakers, boots, apparel
+
+  // Generate mock data based on period and category
+  const chartData = useMemo(() => {
+    const days = parseInt(period);
+    const labels = Array.from({length: days/5}, (_, i) => `Dzień ${i*5}`);
+    
+    let baseTrend, volatility;
+    if (category === 'sneakers') { baseTrend = 100; volatility = 20; }
+    else if (category === 'boots') { baseTrend = 80; volatility = 30; }
+    else { baseTrend = 60; volatility = 15; }
+
+    const data = [];
+    let current = baseTrend;
+    for(let i=0; i<days/5; i++) {
+      // simulate growth for 30, more volatility for 60/90
+      current += (Math.random() * volatility) - (volatility * 0.3); 
+      data.push(Math.round(current));
+    }
+
+    return { labels, data };
+  }, [period, category]);
+
+  useEffect(() => {
+    if (chartRef.current) chartRef.current.destroy();
+    const ctx = canvasRef.current.getContext('2d');
+    
+    chartRef.current = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: chartData.labels,
+        datasets: [{
+          label: 'Prognozowany Popyt',
+          data: chartData.data,
+          borderColor: '#c9a84c',
+          borderWidth: 3,
+          pointBackgroundColor: '#c9a84c',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          fill: true,
+          backgroundColor: 'rgba(201,168,76, 0.1)',
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { 
+          legend: { display: false },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            backgroundColor: '#212121',
+            titleFont: { family: 'Inter', size: 12 },
+            bodyFont: { family: 'Inter', size: 13, weight: 'bold' },
+            padding: 12,
+            displayColors: false,
+            callbacks: {
+              label: (context) => `Index popytu: ${context.parsed.y}`
+            }
+          }
+        },
+        scales: {
+          x: { 
+            grid: { display: false },
+            ticks: { font: { family: 'Inter', size: 11 }, color: '#6b6b6b' }
+          },
+          y: { 
+            grid: { color: '#f0f0f0', drawBorder: false },
+            ticks: { font: { family: 'Inter', size: 11 }, color: '#6b6b6b' },
+            beginAtZero: false
+          }
+        },
+        interaction: { mode: 'nearest', axis: 'x', intersect: false }
+      }
+    });
+  }, [chartData]);
+
+  return (
+    <div className="bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-sm col-span-1 lg:col-span-2 flex flex-col mt-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-gray-100 pb-6">
+        <div>
+          <h3 className="text-base font-bold uppercase tracking-wider text-charcoal">Predykcja Popytu AI</h3>
+          <p className="text-xs text-warm-gray mt-1">Dynamiczne prognozy na podstawie danych historycznych i analizy sentymentu social media</p>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <select 
+            value={category} 
+            onChange={e => setCategory(e.target.value)}
+            className="text-xs border border-gray-200 rounded-lg px-4 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold cursor-pointer text-charcoal font-medium shadow-sm transition-all"
+          >
+            <option value="sneakers">Kategoria: Sneakersy</option>
+            <option value="boots">Kategoria: Botki / Kozaki</option>
+            <option value="apparel">Kategoria: Odzież Sportowa</option>
+          </select>
+          
+          <div className="flex bg-gray-100 rounded-lg p-1 shadow-inner">
+            {['30', '60', '90'].map(p => (
+              <button 
+                key={p} 
+                onClick={() => setPeriod(p)}
+                className={`text-[11px] font-bold px-4 py-1.5 rounded-md transition-all flex-1 sm:flex-none ${period === p ? 'bg-white shadow-sm text-charcoal' : 'text-warm-gray hover:text-charcoal'}`}
+              >
+                {p} Dni
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      <div className="flex-1 min-h-[350px] relative w-full">
+        <canvas ref={canvasRef}></canvas>
+      </div>
+    </div>
+  );
+}
+
+function CTASection() {
+  return (
+    <div className="mt-12 bg-charcoal rounded-3xl p-8 md:p-14 text-center relative overflow-hidden shadow-xl">
+      <div className="absolute top-0 right-0 w-80 h-80 bg-gold/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-white/5 rounded-full blur-3xl -ml-20 -mb-20"></div>
+      
+      <div className="relative z-10 max-w-3xl mx-auto">
+        <span className="inline-block px-4 py-1.5 bg-gold/20 text-gold text-[10px] font-bold uppercase tracking-widest rounded-full mb-6 border border-gold/30">Oferta Premium</span>
+        <h2 className="text-3xl md:text-5xl font-light text-white mb-6 leading-tight">Wyprzedź konkurencję z pełnym dostępem do danych</h2>
+        <p className="text-sm md:text-base text-gray-300 mb-10 leading-relaxed max-w-2xl mx-auto">
+          Powyższe dane to tylko ułamek możliwości naszego silnika AI. Odblokuj pełne raporty dla swojej kategorii, spersonalizowane rekomendacje cenowe i powiadomienia o mikro-trendach zanim staną się popularne.
+        </p>
+        <a href="thankyou.html" className="inline-block px-8 py-4 bg-gold text-charcoal font-bold uppercase tracking-widest rounded-full hover:bg-[#d4b55c] transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(201,168,76,0.3)] hover:shadow-[0_0_40px_rgba(201,168,76,0.5)] no-underline">
+          Wykup dostęp do smart trends dla swojej działalności
+        </a>
+        <p className="text-[11px] text-gray-500 mt-6 uppercase tracking-widest font-medium">Od 499 zł / miesiąc • Anuluj w dowolnej chwili</p>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-10">
+        <div className="mb-10">
+          <div className="flex items-center gap-3 mb-3">
+            <h1 className="text-3xl font-light text-charcoal">Smart Trends</h1>
+            <span className="px-3 py-1 bg-gold/15 text-gold border border-gold/30 rounded-full text-[10px] font-bold uppercase tracking-widest">Demo</span>
+          </div>
+          <p className="text-sm text-warm-gray">Predykcje popytu na podstawie danych FashionHero i trendów zewnętrznych w Social Media.</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <SocialTrends />
+          <SalesReports />
+        </div>
+
+        <DynamicPredictionChart />
+
+        <Recommendations />
+
+        <CTASection />
+        
+      </main>
+      
+      <footer className="py-8 border-t border-gray-100 mt-12 bg-white">
+        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+          <p className="text-[10px] text-warm-gray uppercase tracking-widest">© 2026 FashionHero Intelligence Unit</p>
+          <div className="flex gap-4">
+             <span className="text-[10px] text-warm-gray">Model: Predictive Engine v3.0</span>
+             <span className="text-[10px] text-warm-gray flex items-center gap-1.5"><span className="w-2 h-2 bg-green-500 rounded-full inline-block animate-pulse"></span> System: Optimal</span>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
