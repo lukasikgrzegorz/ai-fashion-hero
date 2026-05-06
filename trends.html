@@ -174,16 +174,27 @@ function SocialTrends() {
   );
 }
 
+function AnnouncementBar() {
+  return (
+    <div style={{ backgroundColor: '#212121', color: '#fff', height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.05em', margin: 0 }}>
+        Darmowa dostawa przy zamówieniach powyżej 99 zł &nbsp;·&nbsp; Łatwe zwroty
+      </p>
+    </div>
+  );
+}
+
 function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#212121', display: 'flex', alignItems: 'center' };
+  const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#212121', alignItems: 'center' };
 
   return (
     <header style={{ backgroundColor: '#fff', position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+      <AnnouncementBar />
       <nav style={{ display: 'flex', height: 56, alignItems: 'center', padding: '0 24px', position: 'relative' }}>
         <button
           onClick={() => setMobileOpen(o => !o)}
-          style={{ ...iconBtn, marginRight: 12, display: 'flex' }}
+          style={{ ...iconBtn, marginRight: 12 }}
           className="lg:hidden"
         >
           {mobileOpen
