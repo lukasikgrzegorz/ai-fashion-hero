@@ -37,6 +37,63 @@
 
 <script type="text/babel">
 const { useState, useEffect, useRef, useMemo } = React;
+const charcoal = '#212121';
+
+// ─── Footer ───────────────────────────────────────────────────────
+const footerSections = [
+  { title: 'POMOC', links: ['FAQ / Kontakt', 'Zwroty i wymiana', 'Informacje o dostawie', 'Status zamówienia'] },
+  { title: 'SKLEP', links: ['Buty męskie', 'Buty damskie', 'Nowości', 'Bestsellery', 'Wyprzedaż'] },
+  { title: 'FIRMA', links: ['Nasza historia', 'Nasze materiały', 'Zrównoważony rozwój', 'Kariera', 'Prasa'] },
+];
+
+function Footer() {
+  return (
+    <footer style={{ backgroundColor: '#212121', color: '#fff' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(40px,5vw,64px) clamp(16px,3vw,32px)' }}>
+        <div style={{ marginBottom: 48, paddingBottom: 40, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+          <h3 style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.5)', marginBottom: 16 }}>ŚLEDŹ NAS</h3>
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+            {['Instagram', 'TikTok', 'Facebook', 'X/Twitter'].map(s => (
+              <a key={s} href="#" style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>{s}</a>
+            ))}
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 40 }}>
+          <div>
+            <h3 style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.5)', marginBottom: 16 }}>DOŁĄCZ DO NAS</h3>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 16, lineHeight: 1.6 }}>Bądź na bieżąco z nowościami, ekskluzywną ofertą i nie tylko.</p>
+            <form onSubmit={e => e.preventDefault()} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <input type="email" placeholder="Adres e-mail"
+                style={{ background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.3)', padding: '8px 0', fontSize: 14, color: '#fff', outline: 'none' }} />
+              <button type="submit"
+                style={{ alignSelf: 'flex-start', padding: '8px 24px', fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: charcoal, backgroundColor: '#fff', border: 'none', borderRadius: 9999, cursor: 'pointer' }}>
+                Zapisz się
+              </button>
+            </form>
+          </div>
+          {footerSections.map(sec => (
+            <div key={sec.title}>
+              <h3 style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.5)', marginBottom: 16 }}>{sec.title}</h3>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {sec.links.map(link => (
+                  <li key={link}><a href="#" style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>{link}</a></li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 56, paddingTop: 32, borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+            <span style={{ fontSize: 18, fontWeight: 600, fontStyle: 'italic', letterSpacing: '-0.03em' }}>FashionHero</span>
+          </div>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+            &copy; {new Date().getFullYear()} FashionHero, Inc. Wszelkie prawa zastrzeżone.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
 
 // ─── Social Trends ─────────────────────────────────────────────────
 
@@ -176,8 +233,8 @@ function SocialTrends() {
 
 function AnnouncementBar() {
   return (
-    <div style={{ backgroundColor: '#212121', color: '#fff', height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.05em', margin: 0 }}>
+    <div style={{ backgroundColor: '#212121', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px 16px' }}>
+      <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.05em', margin: 0, textAlign: 'center', lineHeight: 1.5 }}>
         Darmowa dostawa przy zamówieniach powyżej 99 zł &nbsp;·&nbsp; Łatwe zwroty
       </p>
     </div>
@@ -353,8 +410,9 @@ function DynamicPredictionChart() {
   // Generate mock data based on period and category
   const chartData = useMemo(() => {
     const days = parseInt(period);
-    const labels = Array.from({length: days/5}, (_, i) => `Dzień ${i*5}`);
-    
+    const pointCount = days/5 + 1;
+    const labels = Array.from({length: pointCount}, (_, i) => `Dzień ${i*5}`);
+
     let baseTrend, volatility;
     if (category === 'sneakers') { baseTrend = 100; volatility = 20; }
     else if (category === 'boots') { baseTrend = 80; volatility = 30; }
@@ -362,7 +420,7 @@ function DynamicPredictionChart() {
 
     const data = [];
     let current = baseTrend;
-    for(let i=0; i<days/5; i++) {
+    for(let i=0; i<pointCount; i++) {
       // simulate growth for 30, more volatility for 60/90
       current += (Math.random() * volatility) - (volatility * 0.3); 
       data.push(Math.round(current));
@@ -447,12 +505,20 @@ function DynamicPredictionChart() {
             <option value="apparel">Kategoria: Odzież Sportowa</option>
           </select>
           
-          <div className="flex bg-gray-100 rounded-lg p-1 shadow-inner">
+          {/* dropdown on xs, pill buttons on sm+ */}
+          <select
+            value={period}
+            onChange={e => setPeriod(e.target.value)}
+            className="sm:hidden text-xs border border-gray-200 rounded-lg px-4 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold cursor-pointer text-charcoal font-medium shadow-sm"
+          >
+            {['30','60','90'].map(p => <option key={p} value={p}>{p} Dni</option>)}
+          </select>
+          <div className="hidden sm:flex bg-gray-100 rounded-lg p-1 shadow-inner">
             {['30', '60', '90'].map(p => (
-              <button 
-                key={p} 
+              <button
+                key={p}
                 onClick={() => setPeriod(p)}
-                className={`text-[11px] font-bold px-4 py-1.5 rounded-md transition-all flex-1 sm:flex-none ${period === p ? 'bg-white shadow-sm text-charcoal' : 'text-warm-gray hover:text-charcoal'}`}
+                className={`text-[11px] font-bold px-4 py-1.5 rounded-md transition-all ${period === p ? 'bg-white shadow-sm text-charcoal' : 'text-warm-gray hover:text-charcoal'}`}
               >
                 {p} Dni
               </button>
@@ -515,15 +581,7 @@ function App() {
         
       </main>
       
-      <footer className="py-8 border-t border-gray-100 mt-12 bg-white">
-        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-          <p className="text-[10px] text-warm-gray uppercase tracking-widest">© 2026 FashionHero Intelligence Unit</p>
-          <div className="flex gap-4">
-             <span className="text-[10px] text-warm-gray">Model: Predictive Engine v3.0</span>
-             <span className="text-[10px] text-warm-gray flex items-center gap-1.5"><span className="w-2 h-2 bg-green-500 rounded-full inline-block animate-pulse"></span> System: Optimal</span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
