@@ -595,7 +595,7 @@ function FittingRoomContent({ onClose }) {
   const [errorMsg, setErrorMsg] = useState('');
 
   // In demo mode, keep a blob URL for the before-preview image
-  const beforePreviewUrl = 'images/examplebefore.png';
+  const beforePreviewUrl = 'images/examplebefore.jpg';
 
   const handleFile = (file) => { setPhotoBlob(file); setPhase(PHASE.PREVIEW); };
   const handleCamera = (blob) => { setPhotoBlob(blob); setPhase(PHASE.PREVIEW); };
@@ -609,7 +609,7 @@ function FittingRoomContent({ onClose }) {
         setResultBlob(blob); setResultUrl(url);
       } else {
         await sleep(4000);
-        setResultBlob(null); setResultUrl('images/exampleafter.png');
+        setResultBlob(null); setResultUrl('images/exampleafter.jpg');
       }
       setPhase(PHASE.RESULT);
     } catch (e) {
