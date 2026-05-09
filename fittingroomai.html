@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Garnitur Mario — FashionHero</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            charcoal: '#212121',
+            'warm-gray': '#6b6b6b',
+            'cream-light': '#f5f4f1',
+          },
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .mobile-only { display: flex; }
+    .desktop-only { display: none; }
+    .desktop-inline { display: none; }
+    @media (min-width: 1024px) {
+      .mobile-only { display: none !important; }
+      .desktop-only { display: flex !important; }
+      .desktop-inline { display: block !important; }
+    }
+    .sm-flex { display: none; }
+    @media (min-width: 640px) { .sm-flex { display: flex !important; } }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.35s ease forwards; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { animation: spin 0.9s linear infinite; }
+
+    @keyframes shimmer {
+      0% { background-position: -600px 0; }
+      100% { background-position: 600px 0; }
+    }
+    .shimmer {
+      background: linear-gradient(90deg, #e8e6e1 25%, #d4d1cb 50%, #e8e6e1 75%);
+      background-size: 1200px 100%;
+      animation: shimmer 1.4s infinite;
+    }
+
+    .drop-zone { border: 2px dashed #d1cec9; transition: border-color 0.2s, background 0.2s; }
+    .drop-zone:hover, .drop-zone.over { border-color: #212121; background: #f9f8f6; }
+
+    video { transform: scaleX(-1); }
+
+    /* modal backdrop */
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 100;
+      display: flex; align-items: stretch; justify-content: stretch;
+    }
+    .modal-sheet {
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      width: 100%; height: 100%;
+      border-radius: 0;
+      overflow-y: auto;
+      padding: 28px 24px 40px;
+      display: flex;
+      flex-direction: column;
+    }
+    @media (min-width: 640px) {
+      .modal-sheet { padding: 32px 40px 48px; }
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+const charcoal = '#212121';
+const warmGray = '#6b6b6b';
+
+function getUrlParam(name) {
+  return new URLSearchParams(window.location.search).get(name);
+}
+
+// ─── Icons ────────────────────────────────────────────────────────
+const S = { width: 20, height: 20 };
+function SearchIcon() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={S}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>; }
+function CartIcon() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={S}><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>; }
+function HeartIcon({ filled, style: s }) { return <svg viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{...S,...s}}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>; }
+function MenuIcon() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" style={S}><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>; }
+function CloseIcon({ style: s }) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" style={{...S,...s}}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>; }
+function StarIcon({ filled, style: s }) { return <svg viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14, ...s }}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>; }
+function PlusIcon({ style: s }) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, ...s }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>; }
+function MinusIcon({ style: s }) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, ...s }}><line x1="5" y1="12" x2="19" y2="12"/></svg>; }
+function SparkleIcon({ style: s }) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{...S,...s}}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>; }
+function CameraIcon({ style: s }) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{...S,...s}}><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>; }
+function UploadIcon({ style: s }) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{...S,...s}}><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>; }
+function DownloadIcon({ style: s }) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{...S,...s}}><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>; }
+function RefreshIcon({ style: s }) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{...S,...s}}><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>; }
+
+// ─── Header / Footer ──────────────────────────────────────────────
+function AnnouncementBar() {
+  return (
+    <div style={{ backgroundColor: charcoal, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px 16px' }}>
+      <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.05em', margin: 0, textAlign: 'center', lineHeight: 1.5 }}>
+        Darmowa dostawa przy zamówieniach powyżej 99 zł &nbsp;·&nbsp; Łatwe zwroty
+      </p>
+    </div>
+  );
+}
+
+function Header() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const btn = { background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: charcoal, display: 'flex', alignItems: 'center' };
+  return (
+    <header style={{ backgroundColor: '#fff', position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+      <nav style={{ display: 'flex', height: 56, alignItems: 'center', padding: '0 24px', maxWidth: 1280, margin: '0 auto' }}>
+        <button className="mobile-only" onClick={() => setMobileOpen(o => !o)} style={{ ...btn, marginRight: 12 }}>
+          {mobileOpen ? <CloseIcon /> : <MenuIcon />}
+        </button>
+        <a href="index.html" style={{ marginRight: 32, textDecoration: 'none' }}>
+          <span style={{ fontSize: 20, fontWeight: 600, fontStyle: 'italic', letterSpacing: '-0.03em', color: charcoal }}>FashionHero</span>
+        </a>
+        <div className="desktop-only" style={{ alignItems: 'center', gap: 24, flex: 1 }}>
+          {['MĘŻCZYŹNI', 'KOBIETY', 'WYPRZEDAŻ', 'NOWOŚCI'].map(item => (
+            <a key={item} href="index.html" style={{ fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: charcoal, textDecoration: 'none' }}>{item}</a>
+          ))}
+          <a href="sellers.html" style={{ fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#5c6b4f', textDecoration: 'none' }}>Dla Sprzedawców</a>
+          <a href="trends.html" style={{ fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#c9a84c', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
+            Smart Trends
+            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', color: '#fff', backgroundColor: '#c9a84c', borderRadius: 4, padding: '1px 5px', lineHeight: 1.6 }}>DEMO</span>
+          </a>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }}>
+          <button style={btn}><SearchIcon /></button>
+          <button style={btn} className="sm-flex"><HeartIcon /></button>
+          <button style={btn}><CartIcon /></button>
+        </div>
+      </nav>
+      {mobileOpen && (
+        <div className="mobile-only" style={{ borderTop: '1px solid rgba(0,0,0,0.05)', flexDirection: 'column', backgroundColor: '#fff' }}>
+          <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {['MĘŻCZYŹNI', 'KOBIETY', 'WYPRZEDAŻ', 'NOWOŚCI'].map(item => (
+              <a key={item} href="index.html" style={{ fontSize: 13, padding: '8px 0', color: charcoal, textDecoration: 'none' }}>{item}</a>
+            ))}
+            <a href="sellers.html" style={{ fontSize: 13, padding: '8px 0', color: '#5c6b4f', fontWeight: 500, textDecoration: 'none' }}>Dla Sprzedawców</a>
+            <a href="trends.html" style={{ fontSize: 13, padding: '8px 0', color: '#c9a84c', fontWeight: 500, textDecoration: 'none' }}>Smart Trends</a>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="bg-charcoal text-white pt-16 pb-8">
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
+        <div className="col-span-1">
+          <span className="text-xl font-semibold italic tracking-tighter mb-6 block">FashionHero</span>
+          <p className="text-xs text-warm-gray leading-relaxed max-w-xs">Wspieramy niezależnych sprzedawców i promujemy zrównoważoną modę. Każdy krok ma znaczenie.</p>
+        </div>
+        <div>
+          <h4 className="text-[11px] font-semibold uppercase tracking-widest mb-6">Pomoc</h4>
+          <ul className="text-xs text-warm-gray space-y-4 list-none p-0">
+            <li><a href="#" className="hover:text-white transition-colors">FAQ / Kontakt</a></li>
+            <li><a href="#" className="hover:text-white transition-colors">Dostawa i Zwroty</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="text-[11px] font-semibold uppercase tracking-widest mb-6">Sklep</h4>
+          <ul className="text-xs text-warm-gray space-y-4 list-none p-0">
+            <li><a href="index.html" className="hover:text-white transition-colors">Mężczyźni</a></li>
+            <li><a href="index.html" className="hover:text-white transition-colors">Kobiety</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="text-[11px] font-semibold uppercase tracking-widest mb-6">Zapisz się</h4>
+          <p className="text-xs text-warm-gray mb-4 leading-relaxed">Otrzymuj nowości i oferty specjalne prosto na swój e-mail.</p>
+          <div className="flex border-b border-warm-gray/30 py-2">
+            <input type="email" placeholder="Twój e-mail" className="bg-transparent border-none text-xs w-full focus:outline-none placeholder:text-warm-gray/50" />
+            <button className="text-[10px] font-bold uppercase tracking-widest hover:text-warm-gray transition-colors">OK</button>
+          </div>
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p className="text-[10px] text-warm-gray">© 2026 FashionHero. Wszelkie prawa zastrzeżone.</p>
+        <div className="flex gap-6 text-[10px] text-warm-gray uppercase tracking-widest">
+          <a href="#" className="hover:text-white">Polityka prywatności</a>
+          <a href="#" className="hover:text-white">Regulamin</a>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+// ─── Product data ─────────────────────────────────────────────────
+const product = {
+  name: "Garnitur w stylu Mario",
+  sellerName: "NovaSport",
+  price: 699,
+  rating: 4.8,
+  reviewCount: 47,
+  colors: [
+    { name: "Czerwony / Niebieski", hex: "#c0392b" },
+    { name: "Zielony / Czarny", hex: "#27ae60" },
+  ],
+  sizes: [46, 48, 50, 52, 54, 56],
+  description: "Wyjątkowy garnitur inspirowany kultową postacią z gier — czerwona marynarka z złotymi guzikami, niebieskie spodnie i krawat z motywem grzyba. Idealny na cosplay, imprezy tematyczne lub odważne wyjście w miasto.",
+  features: ["Marynarka z tkaniny wełnopodobnej", "Haftowane detale Mario", "Krawat z motywem grzyba 1-UP", "Certyfikat oryginalności"],
+  materials: "Marynarka: 80% poliester, 20% wiskoza. Spodnie: 75% poliester, 25% elastan.",
+  care: "Prać ręcznie w zimnej wodzie. Nie suszyć w suszarce. Prasować przez ściereczkę.",
+  badge: "LIMITOWANA EDYCJA",
+  image: "images/item.webp",
+};
+
+// ─── Star rating ──────────────────────────────────────────────────
+function StarRating({ rating, count }) {
+  const full = Math.floor(rating);
+  const half = rating - full >= 0.5;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div style={{ display: 'flex', gap: 2, color: charcoal }}>
+        {Array.from({ length: 5 }, (_, i) => <StarIcon key={i} filled={i < full || (i === full && half)} />)}
+      </div>
+      <span style={{ fontSize: 12, color: warmGray }}>({count})</span>
+    </div>
+  );
+}
+
+// ─── Accordion ────────────────────────────────────────────────────
+function AccordionItem({ title, content, isOpen, onToggle }) {
+  return (
+    <div style={{ borderBottom: '1px solid #f0ede8' }}>
+      <button onClick={onToggle} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 0', background: 'none', border: 'none', cursor: 'pointer' }}>
+        <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: charcoal }}>{title}</span>
+        {isOpen ? <MinusIcon /> : <PlusIcon />}
+      </button>
+      {isOpen && (
+        <div style={{ paddingBottom: 16, fontSize: 13, color: warmGray, lineHeight: 1.7, whiteSpace: 'pre-line' }}>{content}</div>
+      )}
+    </div>
+  );
+}
+
+// ─── Image with zoom (jak item.html) ─────────────────────────────
+function ImageWithZoom({ src, alt, badge, colorHex = '#c0392b' }) {
+  const [isZooming, setIsZooming] = useState(false);
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
+  const mainRef = useRef(null);
+
+  const handleMouseMove = useCallback((e) => {
+    if (!mainRef.current) return;
+    const rect = mainRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPos({ x, y });
+  }, []);
+
+  const bg = `radial-gradient(ellipse at 50% 55%, ${colorHex}44 0%, ${colorHex}22 35%, #ece9e2 65%)`;
+
+  return (
+    <div
+      ref={mainRef}
+      className="relative aspect-square overflow-hidden cursor-zoom-in"
+      style={{ background: bg }}
+      onMouseEnter={() => setIsZooming(true)}
+      onMouseLeave={() => setIsZooming(false)}
+      onMouseMove={handleMouseMove}
+    >
+      {badge && (
+        <span className="absolute top-4 left-4 text-[9px] font-bold tracking-widest bg-charcoal text-white px-2.5 py-1 rounded-sm z-10">
+          {badge}
+        </span>
+      )}
+      <div
+        className="absolute inset-0 transition-transform duration-200 ease-out"
+        style={{
+          transform: isZooming ? 'scale(2)' : 'scale(1)',
+          transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
+        }}
+      >
+        <img src={src} alt={alt} className="w-full h-full object-cover" />
+      </div>
+    </div>
+  );
+}
+
+// ─── Product card (item.html style) ──────────────────────────────
+function ProductPage({ onOpenFittingRoom }) {
+  const [selectedColor, setSelectedColor] = useState(product.colors[0]);
+  const [selectedSize, setSelectedSize] = useState(null);
+  const [openAccordion, setOpenAccordion] = useState(0);
+
+  const sections = [
+    { title: "Opis", content: product.description },
+    { title: "Cechy", content: product.features.map(f => `• ${f}`).join('\n') },
+    { title: "Materiały", content: product.materials },
+    { title: "Pielęgnacja", content: product.care },
+  ];
+
+  return (
+    <div className="max-w-7xl mx-auto px-6 py-10">
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-1.5 text-[11px] text-warm-gray/70 mb-8">
+        <a href="index.html" className="hover:text-charcoal">Home</a>
+        <span>/</span>
+        <a href="index.html" className="hover:text-charcoal">Mężczyźni</a>
+        <span>/</span>
+        <span className="text-charcoal/60">{product.name}</span>
+      </nav>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-12 lg:gap-20">
+        {/* Image */}
+        <div>
+          <ImageWithZoom src={product.image} alt={product.name} badge={product.badge} colorHex="#c0392b" />
+        </div>
+
+        {/* Info */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+            <h1 style={{ fontSize: 26, fontWeight: 400, color: charcoal, margin: 0, lineHeight: 1.3 }}>{product.name}</h1>
+            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: warmGray, padding: 4, flexShrink: 0 }}>
+              <HeartIcon style={{ width: 24, height: 24 }} />
+            </button>
+          </div>
+
+          <StarRating rating={product.rating} count={product.reviewCount} />
+
+          <div style={{ fontSize: 12, color: warmGray }}>
+            Sprzedawane przez <a href="sellers.html" style={{ color: 'inherit' }}>{product.sellerName}</a>
+            <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, background: 'rgba(33,33,33,0.1)', color: 'rgba(33,33,33,0.7)', padding: '1px 6px', borderRadius: 3, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pro</span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: 22, fontWeight: 500, color: charcoal }}>{product.price} zł</span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#22c55e', display: 'inline-block' }} />
+            <span style={{ fontSize: 12, color: '#15803d', fontWeight: 500 }}>W magazynie — Gotowe do wysyłki</span>
+          </div>
+
+          <div style={{ background: '#f9f8f6', border: '1px solid #e8e6e1', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Colors */}
+            <div>
+              <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: charcoal, display: 'block', marginBottom: 12 }}>
+                Kolor: {selectedColor.name}
+              </span>
+              <div style={{ display: 'flex', gap: 10 }}>
+                {product.colors.map(c => (
+                  <button key={c.name} onClick={() => setSelectedColor(c)} title={c.name}
+                    style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: c.hex, border: 'none', cursor: 'pointer', outline: selectedColor.name === c.name ? `3px solid ${charcoal}` : '3px solid transparent', outlineOffset: 2 }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Sizes */}
+            <div>
+              <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: charcoal, display: 'block', marginBottom: 12 }}>
+                Rozmiar (EU){selectedSize ? `: ${selectedSize}` : ''}
+              </span>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                {product.sizes.map(sz => (
+                  <button key={sz} onClick={() => setSelectedSize(sz)}
+                    style={{ height: 44, fontSize: 13, fontWeight: 500, border: selectedSize === sz ? `2px solid ${charcoal}` : '1px solid #e0ddd8', borderRadius: 8, background: selectedSize === sz ? charcoal : '#fff', color: selectedSize === sz ? '#fff' : charcoal, cursor: 'pointer', transition: 'all 0.15s' }}
+                  >{sz}</button>
+                ))}
+              </div>
+              {!selectedSize && <p style={{ fontSize: 10, color: warmGray, fontStyle: 'italic', margin: '8px 0 0' }}>Wybierz rozmiar, aby dodać do koszyka</p>}
+            </div>
+
+            {/* CTA buttons */}
+            <button disabled={!selectedSize}
+              style={{ width: '100%', padding: '14px', background: selectedSize ? charcoal : '#ccc', color: '#fff', border: 'none', borderRadius: 32, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', cursor: selectedSize ? 'pointer' : 'not-allowed', transition: 'background 0.2s' }}
+            >
+              {selectedSize ? `DODAJ DO KOSZYKA — ${product.price} zł` : 'WYBIERZ ROZMIAR'}
+            </button>
+
+            {/* AI Fitting Room button */}
+            <button
+              onClick={selectedSize ? onOpenFittingRoom : undefined}
+              disabled={!selectedSize}
+              style={{ width: '100%', padding: '13px', background: '#fff', color: selectedSize ? charcoal : '#aaa', border: `1.5px solid ${selectedSize ? charcoal : '#d1cec9'}`, borderRadius: 32, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', cursor: selectedSize ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'background 0.2s, border-color 0.2s, color 0.2s' }}
+              onMouseEnter={e => { if (selectedSize) e.currentTarget.style.background = '#f5f4f1'; }}
+              onMouseLeave={e => { if (selectedSize) e.currentTarget.style.background = '#fff'; }}
+            >
+              <SparkleIcon style={{ width: 15, height: 15 }} />
+              {selectedSize ? 'PRZYMIERZALNIA AI' : 'WYBIERZ ROZMIAR, ABY PRZYMIERZYĆ'}
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <p style={{ fontSize: 12, color: warmGray, margin: 0 }}>Darmowa dostawa dla zamówień powyżej 299 zł</p>
+            <p style={{ fontSize: 12, color: warmGray, margin: 0 }}>Darmowe zwroty w ciągu 30 dni</p>
+          </div>
+
+          {/* Accordion */}
+          <div style={{ borderTop: '1px solid #f0ede8' }}>
+            {sections.map((sec, i) => (
+              <AccordionItem key={i} title={sec.title} content={sec.content} isOpen={openAccordion === i} onToggle={() => setOpenAccordion(openAccordion === i ? null : i)} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Fitting Room Modal ────────────────────────────────────────────
+const PHASE = { IDLE: 'idle', CAMERA: 'camera', PREVIEW: 'preview', LOADING: 'loading', RESULT: 'result', ERROR: 'error' };
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function generateWithAI(photoBlob, apiKey) {
+  const productRes = await fetch(product.image);
+  const productBlob = await productRes.blob();
+
+  const form = new FormData();
+  form.append('model', 'gpt-image-1.5');
+  form.append('image[]', photoBlob, 'photo.png');
+  form.append('image[]', productBlob, 'suit.webp');
+  form.append('prompt',
+    'Dress this person in the suit shown in the second image. Keep the person\'s face, pose and body exactly the same. ' +
+    'High-quality fashion editorial photography.'
+  );
+  form.append('n', '1');
+  form.append('size', '1024x1536');
+
+  const res = await fetch('https://api.openai.com/v1/images/edits', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}` },
+    body: form,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || `HTTP ${res.status}`);
+  }
+
+  const data = await res.json();
+  const b64 = data.data[0].b64_json;
+  const bytes = atob(b64);
+  const ab = new ArrayBuffer(bytes.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < bytes.length; i++) ia[i] = bytes.charCodeAt(i);
+  return new Blob([ab], { type: 'image/png' });
+}
+
+// ─── Camera view ──────────────────────────────────────────────────
+function CameraView({ onCapture, onCancel }) {
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+      .then(stream => {
+        streamRef.current = stream;
+        if (videoRef.current) { videoRef.current.srcObject = stream; videoRef.current.play(); setReady(true); }
+      })
+      .catch(() => setError('Nie można uzyskać dostępu do kamery.'));
+    return () => streamRef.current?.getTracks().forEach(t => t.stop());
+  }, []);
+
+  const capture = () => {
+    const video = videoRef.current;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.translate(canvas.width, 0); ctx.scale(-1, 1); ctx.drawImage(video, 0, 0);
+    canvas.toBlob(blob => { streamRef.current?.getTracks().forEach(t => t.stop()); onCapture(blob); }, 'image/png');
+  };
+
+  if (error) return (
+    <div style={{ textAlign: 'center', padding: 24 }}>
+      <p style={{ color: '#b94040', fontSize: 14 }}>{error}</p>
+      <button onClick={onCancel} style={{ marginTop: 12, fontSize: 13, color: warmGray, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Wróć</button>
+    </div>
+  );
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+      <div style={{ width: '100%', borderRadius: 12, overflow: 'hidden', background: '#000' }}>
+        <video ref={videoRef} playsInline muted style={{ width: '100%', display: 'block', maxHeight: '65vh', objectFit: 'cover' }} />
+        {!ready && <div style={{ padding: 40, textAlign: 'center' }}><p style={{ color: '#888', fontSize: 13 }}>Ładowanie kamery…</p></div>}
+      </div>
+      <div style={{ display: 'flex', gap: 10 }}>
+        <button onClick={onCancel} style={{ padding: '10px 20px', border: '1px solid #d1cec9', borderRadius: 8, background: 'none', fontSize: 13, cursor: 'pointer', color: warmGray }}>Anuluj</button>
+        <button onClick={capture} disabled={!ready} style={{ padding: '10px 20px', border: 'none', borderRadius: 8, background: charcoal, color: '#fff', fontSize: 13, fontWeight: 500, cursor: ready ? 'pointer' : 'not-allowed', opacity: ready ? 1 : 0.5, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <CameraIcon style={{ width: 15, height: 15 }} />Zrób zdjęcie
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Upload zone ──────────────────────────────────────────────────
+function UploadZone({ onFile }) {
+  const inputRef = useRef(null);
+  const [over, setOver] = useState(false);
+  const handleDrop = (e) => { e.preventDefault(); setOver(false); const f = e.dataTransfer.files[0]; if (f?.type.startsWith('image/')) onFile(f); };
+  return (
+    <div className={`drop-zone ${over ? 'over' : ''}`}
+      style={{ borderRadius: 12, padding: '32px 20px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}
+      onClick={() => inputRef.current.click()}
+      onDragOver={e => { e.preventDefault(); setOver(true); }}
+      onDragLeave={() => setOver(false)}
+      onDrop={handleDrop}
+    >
+      <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => e.target.files[0] && onFile(e.target.files[0])} />
+      <UploadIcon style={{ width: 28, height: 28, color: warmGray }} />
+      <div>
+        <p style={{ fontSize: 14, fontWeight: 500, color: charcoal, margin: '0 0 3px' }}>Przeciągnij zdjęcie lub kliknij</p>
+        <p style={{ fontSize: 12, color: warmGray, margin: 0 }}>PNG, JPG lub WEBP — najlepiej całe ciało</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Loading skeleton ─────────────────────────────────────────────
+function LoadingView({ previewImageUrl }) {
+  const steps = ["Analizuję Twoje zdjęcie…", "Nakładam garnitur…", "Dopasowuję proporcje…", "Finalizuję look…"];
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setStep(s => s < steps.length - 1 ? s + 1 : s), 1300);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+      <div style={{ position: 'relative', width: '100%', borderRadius: 12, overflow: 'hidden', maxHeight: '65vh' }}>
+        <img src={previewImageUrl} alt="Podgląd" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', display: 'block', filter: 'blur(2px)', transform: 'scale(1.03)' }} />
+        <div className="shimmer" style={{ position: 'absolute', inset: 0, opacity: 0.55 }} />
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+          <svg className="spinner" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.5} style={{ width: 28, height: 28, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.4))' }}>
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" strokeLinecap="round"/>
+          </svg>
+          <p style={{ fontSize: 13, fontWeight: 500, color: '#fff', margin: 0, textShadow: '0 1px 6px rgba(0,0,0,0.5)' }}>{steps[step]}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Result view ──────────────────────────────────────────────────
+function ResultView({ imageUrl, resultBlob, onReset, onClose }) {
+  const handleDownload = () => {
+    const url = resultBlob ? URL.createObjectURL(resultBlob) : imageUrl;
+    const a = document.createElement('a'); a.href = url; a.download = 'moj-look-fashionhero.png'; a.click();
+    if (resultBlob) setTimeout(() => URL.revokeObjectURL(url), 60000);
+  };
+
+  return (
+    <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+      <div style={{ position: 'relative', width: '100%' }}>
+        <img src={imageUrl} alt="Twój look" style={{ width: '100%', borderRadius: 12, display: 'block', maxHeight: '70vh', objectFit: 'contain', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }} />
+        <button onClick={handleDownload} style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(255,255,255,0.92)', border: 'none', borderRadius: 8, padding: '7px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: charcoal }}>
+          <DownloadIcon style={{ width: 13, height: 13 }} />Zapisz
+        </button>
+      </div>
+      <p style={{ fontSize: 13, color: '#5c6b4f', fontWeight: 500, textAlign: 'center', margin: 0 }}>Świetnie wyglądasz w tym garniturze!</p>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <button onClick={onReset} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: '1px solid #d1cec9', borderRadius: 8, padding: '10px 18px', cursor: 'pointer', fontSize: 13, color: warmGray }}>
+          <RefreshIcon style={{ width: 13, height: 13 }} />Spróbuj z innym zdjęciem
+        </button>
+        <button onClick={onClose} style={{ display: 'flex', alignItems: 'center', gap: 8, background: charcoal, border: 'none', borderRadius: 8, padding: '10px 20px', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#fff' }}>
+          <CartIcon style={{ width: 15, height: 15 }} />Dodaj do koszyka
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Fitting room content ─────────────────────────────────────────
+function FittingRoomContent({ onClose }) {
+  const apiKey = getUrlParam('openaikey');
+  const [phase, setPhase] = useState(PHASE.IDLE);
+  const [photoBlob, setPhotoBlob] = useState(null);
+  const [resultUrl, setResultUrl] = useState(null);
+  const [resultBlob, setResultBlob] = useState(null);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  // In demo mode, keep a blob URL for the before-preview image
+  const beforePreviewUrl = 'images/examplebefore.png';
+
+  const handleFile = (file) => { setPhotoBlob(file); setPhase(PHASE.PREVIEW); };
+  const handleCamera = (blob) => { setPhotoBlob(blob); setPhase(PHASE.PREVIEW); };
+
+  const handleConfirm = async () => {
+    setPhase(PHASE.LOADING);
+    try {
+      if (apiKey) {
+        const blob = await generateWithAI(photoBlob, apiKey);
+        const url = URL.createObjectURL(blob);
+        setResultBlob(blob); setResultUrl(url);
+      } else {
+        await sleep(4000);
+        setResultBlob(null); setResultUrl('images/exampleafter.png');
+      }
+      setPhase(PHASE.RESULT);
+    } catch (e) {
+      setErrorMsg(e.message || 'Nieznany błąd'); setPhase(PHASE.ERROR);
+    }
+  };
+
+  const reset = () => {
+    if (resultBlob && resultUrl) URL.revokeObjectURL(resultUrl);
+    setPhotoBlob(null); setResultUrl(null); setResultBlob(null); setErrorMsg(''); setPhase(PHASE.IDLE);
+  };
+
+  // Preview image URL: real photo for AI mode, example for demo mode
+  const previewImageUrl = apiKey
+    ? (photoBlob ? URL.createObjectURL(photoBlob) : null)
+    : beforePreviewUrl;
+
+  return (
+    <div>
+      {/* Item being tried on */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', border: '1px solid #e8e6e1', borderRadius: 10, backgroundColor: '#fafaf9', marginBottom: 24 }}>
+        <img src="images/item.webp" alt="Garnitur Mario" style={{ width: 52, height: 52, objectFit: 'cover', borderRadius: 6, flexShrink: 0 }} />
+        <div>
+          <p style={{ fontSize: 11, color: warmGray, margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Przymierzasz</p>
+          <p style={{ fontSize: 14, fontWeight: 500, color: charcoal, margin: 0 }}>Garnitur w stylu Mario</p>
+        </div>
+      </div>
+
+      {phase === PHASE.IDLE && (
+        <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <UploadZone onFile={handleFile} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ flex: 1, height: 1, background: '#e8e6e1' }} />
+            <span style={{ fontSize: 12, color: warmGray }}>lub</span>
+            <div style={{ flex: 1, height: 1, background: '#e8e6e1' }} />
+          </div>
+          <button onClick={() => setPhase(PHASE.CAMERA)}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '13px', border: '1px solid #d1cec9', borderRadius: 12, background: '#fff', fontSize: 14, fontWeight: 500, color: charcoal, cursor: 'pointer' }}
+          >
+            <CameraIcon style={{ width: 16, height: 16 }} />Zrób zdjęcie kamerą
+          </button>
+          {!apiKey && (
+            <p style={{ textAlign: 'center', fontSize: 11, color: warmGray, margin: '4px 0 0' }}>
+              Tryb demo — dodaj <code style={{ background: '#f0ede8', padding: '1px 5px', borderRadius: 4 }}>?openaikey=…</code> aby użyć prawdziwego AI
+            </p>
+          )}
+        </div>
+      )}
+
+      {phase === PHASE.CAMERA && <CameraView onCapture={handleCamera} onCancel={reset} />}
+
+      {phase === PHASE.PREVIEW && (
+        <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          <img src={previewImageUrl} alt="Podgląd" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 12 }} />
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={reset} style={{ padding: '10px 18px', border: '1px solid #d1cec9', borderRadius: 8, background: 'none', fontSize: 13, cursor: 'pointer', color: warmGray }}>
+              Zmień zdjęcie
+            </button>
+            <button onClick={handleConfirm} style={{ padding: '10px 20px', border: 'none', borderRadius: 8, background: charcoal, color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <SparkleIcon style={{ width: 14, height: 14 }} />Przymierz teraz
+            </button>
+          </div>
+        </div>
+      )}
+
+      {phase === PHASE.LOADING && <LoadingView previewImageUrl={previewImageUrl} />}
+
+      {phase === PHASE.RESULT && resultUrl && <ResultView imageUrl={resultUrl} resultBlob={resultBlob} onReset={reset} onClose={onClose} />}
+
+      {phase === PHASE.ERROR && (
+        <div className="fade-in" style={{ textAlign: 'center', padding: 24 }}>
+          <p style={{ color: '#b94040', fontSize: 14 }}>Coś poszło nie tak: {errorMsg}</p>
+          <button onClick={reset} style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 18px', border: '1px solid #d1cec9', borderRadius: 8, background: 'none', fontSize: 13, color: warmGray, cursor: 'pointer' }}>
+            <RefreshIcon style={{ width: 13, height: 13 }} />Spróbuj ponownie
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Modal ────────────────────────────────────────────────────────
+function FittingRoomModal({ isOpen, onClose }) {
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-sheet" onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <SparkleIcon style={{ width: 16, height: 16, color: '#c9a84c' }} />
+            <h2 style={{ fontSize: 15, fontWeight: 600, color: charcoal, margin: 0 }}>Przymierzalnia AI</h2>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: warmGray, padding: 4, display: 'flex' }}>
+            <CloseIcon style={{ width: 20, height: 20 }} />
+          </button>
+        </div>
+        <FittingRoomContent onClose={onClose} />
+      </div>
+    </div>
+  );
+}
+
+// ─── App ──────────────────────────────────────────────────────────
+function App() {
+  const [fittingOpen, setFittingOpen] = useState(false);
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#fff' }}>
+      <AnnouncementBar />
+      <Header />
+      <ProductPage onOpenFittingRoom={() => setFittingOpen(true)} />
+      <Footer />
+      <FittingRoomModal isOpen={fittingOpen} onClose={() => setFittingOpen(false)} />
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
