@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+" (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_rMjy2NErD9sNPWWiDhekbPp2rS6DPCd5qXhrqoWhvGeA', {
+      api_host: 'https://us.i.posthog.com',
+      person_profiles: 'identified_only',
+    });
+  </script>
   <title>Smart Trends — FashionHero</title>
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -163,7 +170,15 @@ function AddSourceModal({ active, onClose, onAdd, onRemove }) {
               <div key={p.id} className="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors">
                 <span className="text-sm font-medium text-charcoal">{p.name}</span>
                 <button
-                  onClick={() => isActive ? onRemove(p.id) : onAdd(p)}
+                  onClick={() => {
+                    if (isActive) {
+                      onRemove(p.id);
+                      posthog.capture('trend_source_removed', { source_name: p.name });
+                    } else {
+                      onAdd(p);
+                      posthog.capture('trend_source_saved', { source_name: p.name });
+                    }
+                  }}
                   className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full transition-colors ${isActive ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-gold/10 text-gold hover:bg-gold/20'}`}
                 >
                   {isActive ? '− Usuń' : '+ Dodaj'}
@@ -546,7 +561,11 @@ function CTASection() {
         <p className="text-sm md:text-base text-gray-300 mb-10 leading-relaxed max-w-2xl mx-auto">
           Powyższe dane to tylko ułamek możliwości naszego silnika AI. Odblokuj pełne raporty dla swojej kategorii, spersonalizowane rekomendacje cenowe i powiadomienia o mikro-trendach zanim staną się popularne.
         </p>
-        <a href="thankyou.html" className="inline-block px-8 py-4 bg-gold text-charcoal font-bold uppercase tracking-widest rounded-full hover:bg-[#d4b55c] transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(201,168,76,0.3)] hover:shadow-[0_0_40px_rgba(201,168,76,0.5)] no-underline">
+        <a
+          href="thankyou.html"
+          className="inline-block px-8 py-4 bg-gold text-charcoal font-bold uppercase tracking-widest rounded-full hover:bg-[#d4b55c] transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(201,168,76,0.3)] hover:shadow-[0_0_40px_rgba(201,168,76,0.5)] no-underline"
+          onClick={() => posthog.capture('smart_trends_cta_clicked')}
+        >
           Wykup dostęp do smart trends dla swojej działalności
         </a>
         <p className="text-[11px] text-gray-500 mt-6 uppercase tracking-widest font-medium">Od 499 zł / miesiąc • Anuluj w dowolnej chwili</p>
